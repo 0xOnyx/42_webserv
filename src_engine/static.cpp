@@ -2,4 +2,4 @@
 // Created by Jeremy Dos santos on 2/6/23.
 //
 
-#include "static.h"
+#include "../includes/static.hpp"
