@@ -1,15 +1,12 @@
-//
-// Created by Jeremy Dos santos on 2/6/23.
-//
-
-#ifndef INC_42_WEBSERV_SOCKET_H
-#define INC_42_WEBSERV_SOCKET_H
-
+#ifndef SOCKET_HPP
+# define SOCKET_HPP
 
 class socket
 {
+public:
+
+private:
 
 };
 
-
-#endif //INC_42_WEBSERV_SOCKET_H
+#endif

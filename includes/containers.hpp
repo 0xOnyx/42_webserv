@@ -1,15 +1,12 @@
-//
-// Created by Jeremy Dos santos on 2/6/23.
-//
-
-#ifndef INC_42_WEBSERV_CONTAINERS_H
-#define INC_42_WEBSERV_CONTAINERS_H
-
+#ifndef CONTAINERS_HPP
+# define CONTAINERS_HPP
 
 class containers
 {
+public:
+
+private:
 
 };
 
-
-#endif //INC_42_WEBSERV_CONTAINERS_H
+#endif

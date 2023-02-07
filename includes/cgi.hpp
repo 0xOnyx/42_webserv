@@ -1,15 +1,12 @@
-//
-// Created by Jeremy Dos santos on 2/6/23.
-//
-
-#ifndef INC_42_WEBSERV_CGI_H
-#define INC_42_WEBSERV_CGI_H
-
+#ifndef CGI_HPP
+# define CGI_HPP
 
 class cgi
 {
+public:
+
+private:
 
 };
 
-
-#endif //INC_42_WEBSERV_CGI_H
+#endif

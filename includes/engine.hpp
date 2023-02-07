@@ -1,15 +1,12 @@
-//
-// Created by Jeremy Dos santos on 2/6/23.
-//
-
-#ifndef INC_42_WEBSERV_ENGINE_H
-#define INC_42_WEBSERV_ENGINE_H
-
+#ifndef ENGINE_HPP
+# define ENGINE_HPP
 
 class engine
 {
+public:
+
+private:
 
 };
 
-
-#endif //INC_42_WEBSERV_ENGINE_H
+#endif

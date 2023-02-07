@@ -1,8 +1,15 @@
-//
-// Created by Jeremy Dos santos on 2/6/23.
-//
+#ifndef INCLUDES_H
+# define INCLUDES_H
 
-#ifndef INC_42_WEBSERV_INCLUDES_H
-#define INC_42_WEBSERV_INCLUDES_H
+# include "data.h"
+# include "utils.h"
+# include "cgi.hpp"
+# include "config.hpp"
+# include "config.hpp"
+# include "config.hpp"
+# include "engine.hpp"
+# include "server.hpp"
+# include "socket.hpp"
+# include "static_serv.hpp"
 
-#endif //INC_42_WEBSERV_INCLUDES_H
+#endif

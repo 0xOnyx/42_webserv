@@ -1,8 +1,8 @@
-//
-// Created by Jeremy Dos santos on 2/6/23.
-//
+#ifndef DATA_H
+# define DATA_H
 
-#ifndef INC_42_WEBSERV_DATA_H
-#define INC_42_WEBSERV_DATA_H
+#include <unistd.h>
+#include <cstdio>
+#include <iostream>
 
-#endif //INC_42_WEBSERV_DATA_H
+#endif

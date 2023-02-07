@@ -1,15 +1,12 @@
-//
-// Created by Jeremy Dos santos on 2/6/23.
-//
-
-#ifndef INC_42_WEBSERV_CONFIG_H
-#define INC_42_WEBSERV_CONFIG_H
-
+#ifndef CONFIG_HPP
+# define CONFIG_HPP
 
 class config
 {
+public:
+
+private:
 
 };
 
-
-#endif //INC_42_WEBSERV_CONFIG_H
+#endif
