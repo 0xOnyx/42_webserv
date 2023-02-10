@@ -1,8 +1,8 @@
 #ifndef SERVER_HPP
 # define SERVER_HPP
+# include "includes.h"
 
-
-class server
+class Server : public Socket
 {
 public:
 

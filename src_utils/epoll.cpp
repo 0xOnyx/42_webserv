@@ -32,8 +32,9 @@ int poll_del(poll_t *poll, int fd)
 int poll_wait(poll_t *poll, size_t max)
 {
 	struct epoll_event events[max];
+	int count;
 
-	int count = epoll_wait(poll->fd, events, (int)max, -1);
+	count = epoll_wait(poll->fd, events, (int)max, -1);
 	if (count == -1)
 		return (1);
 	for (int i = 0; i < count; i++)

@@ -1,11 +1,18 @@
 #ifndef SOCKET_HPP
 # define SOCKET_HPP
 # include "includes.h"
+# define MAX_QUEUE 10
 
-class socket
+class Socket
 {
 public:
+	Socket(const char *hostname, const char *port);
+	void init();
+	~Socket();
 private:
+	const char	*_hostname;
+	const char	*_port;
+	int 		_socket_fd;
 };
 
 #endif
