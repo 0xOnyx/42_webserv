@@ -8,7 +8,7 @@ Socket::Socket(const char *hostname, const char *port) :_hostname(hostname), _po
 
 void Socket::init()
 {
-	struct addrinfo		hints;
+	struct addrinfo		hints = {};
 	struct addrinfo		*rp;
 	struct addrinfo		*res;
 	int 				status;
@@ -49,5 +49,9 @@ void Socket::init()
 
 Socket::~Socket()
 {
+	if (_hostname)
+		free((void *)_hostname);
+	if (_port)
+		free((void *)_port);
 	close(_socket_fd);
 }
