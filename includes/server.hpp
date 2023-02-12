@@ -4,15 +4,17 @@
 
 class Engine;
 
-class Server : public Socket
+class Server
 {
 public:
-	Server(const char *hostname, const char *port);
-	void parse(int fd);
+	Server();
+	void		add_engine(std::string path, class *Engine);
+	void		request(t_list *first);
+	const char 	*get_servername(void) const;
 	~Server();
 private:
-	std::map<std::string,
-	std::map<std::string, class *Engine>	location;
+	char											*servername;
+	std::map<const char *, class *Engine, cmp_str>	location;
 };
 
 #endif

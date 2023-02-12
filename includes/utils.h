@@ -45,6 +45,7 @@
 	int poll_wait(poll_t *poll, size_t max);
 # endif
 
+struct cmp_str;
 int	set_nonblocking(int sockfd);
 
 #endif
