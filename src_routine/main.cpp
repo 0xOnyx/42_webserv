@@ -2,19 +2,18 @@
 
 int	main(int argc, char **argv)
 {
-	(void)argc;
-	(void)argv;
 	class Syslog		log;
 	std::ostringstream	error;
 	class Containers	containers;
 
 	try{
+		if (argc != 2)
+			throw std::runtime_error("error argument not match");
 		if (*argv[1])
 			containers.read_config(argv[1]);
 		else
-			containers.read_config(DEFAULT_CONFIG)
-
-
+			containers.read_config(const_cast<char *>(static_cast<const char *>(DEFAULT_CONFIG)));
+		containers.listen();
 	}
 	catch(std::runtime_error const &e)
 	{

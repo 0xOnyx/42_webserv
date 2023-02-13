@@ -1,6 +1,8 @@
 #ifndef DATA_H
 # define DATA_H
 
+# include <sys/mman.h>
+# include <sys/stat.h>
 # include <sstream>
 # include <map>
 # include <errno.h>
