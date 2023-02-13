@@ -3,15 +3,18 @@
 # include "includes.h"
 
 class Socket;
+class Server;
 
-typedef std::pair<std::string, std::string> pair_str;
-
-class containers
+class Containers
 {
 public:
-
+	Containers(void);
+	void	read_config(char *path_file);
+	void	listen(void);
+	~Containers();
 private:
-	std::map<pair_str, class *Socket>	_socket;
+	void	add_server(pair_str listen, class Server *server);
+	std::map<pair_str, class *Socket>	_binding;
 };
 
 #endifx

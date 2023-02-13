@@ -10,9 +10,11 @@ public:
 	void init();
 	~Socket();
 private:
-	const char	*_hostname;
-	const char	*_port;
-	int 		_socket_fd;
+	std::string								_hostname;
+	std::string								_port;
+	int 									_socket_fd;
+	std::map<std::string, class *Server>	_server;
+	
 };
 
 #endif

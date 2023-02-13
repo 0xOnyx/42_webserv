@@ -1,5 +1,6 @@
 #ifndef UTILS_H
 # define UTILS_H
+# include "includes.h"
 
 # if defined __linux__
 	#include <sys/epoll.h>
@@ -44,6 +45,8 @@
 	int poll_del(poll_t *poll, int fd);
 	int poll_wait(poll_t *poll, size_t max);
 # endif
+
+typedef std::pair<std::string, std::string> pair_str;
 
 struct cmp_str;
 int	set_nonblocking(int sockfd);

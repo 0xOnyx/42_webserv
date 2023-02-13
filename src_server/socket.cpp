@@ -19,24 +19,24 @@ void Socket::init()
 	hints.ai_flags = AI_PASSIVE;
 	hints.ai_family = AF_UNSPEC;
 	hints.ai_socktype = SOCK_STREAM;
-	if ((status = getaddrinfo(_hostname, _port, &hints, &res)) != 0)
+	if ((status = getaddrinfo(_hostname.c_str(), _port, &hints, &res)) != 0)
 		throw std::runtime_error(gai_strerror(status));
 	for (rp = res; rp != NULL; rp = rp->ai_next)
 	{
 		if ((_socket_fd = socket(rp->ai_family, rp->ai_socktype, rp->ai_protocol )) == -1)
 		{
-			syslog(LOG_WARNING, "[ERROR] create socket %s", strerror(errno));
+			syslog(LOG_WARNING, "[ERROR] create socket %m");
 			continue ;
 		}
 		if (setsockopt(_socket_fd, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(int)) == -1)
 		{
-			syslog(LOG_WARNING, "[ERROR] socket set options %s", strerror(errno));
+			syslog(LOG_WARNING, "[ERROR] socket set options %m");
 			close(_socket_fd);
 			continue ;
 		}
 		if (bind(_socket_fd, rp->ai_addr, rp->ai_addrlen) == 0)
 			break ;
-		syslog(LOG_WARNING, "[ERROR] socket bind %s", strerror(errno));
+		syslog(LOG_WARNING, "[ERROR] socket bind %m");
 		close(_socket_fd);
 	}
 	if (rp == NULL)
@@ -49,9 +49,6 @@ void Socket::init()
 
 Socket::~Socket()
 {
-	if (_hostname)
-		free((void *)_hostname);
-	if (_port)
-		free((void *)_port);
+{
 	close(_socket_fd);
 }

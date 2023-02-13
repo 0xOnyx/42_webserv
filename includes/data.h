@@ -1,6 +1,7 @@
 #ifndef DATA_H
 # define DATA_H
 
+# include <sstream>
 # include <map>
 # include <errno.h>
 # include <fcntl.h>
