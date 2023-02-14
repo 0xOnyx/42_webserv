@@ -1,12 +1,18 @@
 #include "socket.hpp"
 
-Socket::Socket(const char *hostname, const char *port) :_hostname(hostname), _port(port)
+Socket::Socket(const std::string& hostname, const std::string& port) :_hostname(hostname), _port(port), _socket_fd(-1)
 {
-	if (!*hostname && !*port)
+	if (hostname.length() <= 0 && port.length() <= 0)
 		throw std::runtime_error("no hostname and port set")
 }
 
-void Socket::init()
+void	Socket::add_server(const std::string& servername, class Server *server)
+{
+	if (_server.insert(std::pair<std::string, class Server *>(servername, server)).second)
+		throw std::runtime_error("the server could not be put");
+}
+
+void	Socket::init()
 {
 	struct addrinfo		hints = {};
 	struct addrinfo		*rp;
@@ -19,7 +25,10 @@ void Socket::init()
 	hints.ai_flags = AI_PASSIVE;
 	hints.ai_family = AF_UNSPEC;
 	hints.ai_socktype = SOCK_STREAM;
-	if ((status = getaddrinfo(_hostname.c_str(), _port, &hints, &res)) != 0)
+	if ((status = getaddrinfo(
+			const_cast<const char *>(_hostname.length() <= 0 ? NULL : _hostname.c_str()),
+			const_cast<const char *>(_port.length() <= 0 ? NULL: _port.c_str()),
+			&hints, &res)) != 0)
 		throw std::runtime_error(gai_strerror(status));
 	for (rp = res; rp != NULL; rp = rp->ai_next)
 	{
@@ -48,7 +57,6 @@ void Socket::init()
 }
 
 Socket::~Socket()
-{
 {
 	close(_socket_fd);
 }

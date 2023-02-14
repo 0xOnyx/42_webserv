@@ -8,10 +8,11 @@ class Server
 {
 public:
 	Server();
-	void		add_engine(std::string location, class *Engine);
+	void	set_error_page(std::string error);
+	void	add_engine(std::string location, class Engine *);
 	~Server();
 private:
-	std::string 							error_page;
+	std::string 							_error_page;
 	std::map<std::string, class *Engine>	location;
 };
 

@@ -48,7 +48,7 @@
 
 typedef std::pair<std::string, std::string> pair_str;
 
-struct cmp_str;
-int	set_nonblocking(int sockfd);
-
+struct	cmp_str;
+int		set_nonblocking(int sockfd);
+size_t	get_size_file(int fd);
 #endif
