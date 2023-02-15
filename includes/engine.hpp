@@ -5,12 +5,11 @@
 class Engine
 {
 public:
-	Engine();
+	Engine(std::map<std::string, std::string> location);
 	virtual	void Request(t_list *list) = 0;
-	~Engine();
-private:
-	std::string	index;
-	std::string root_path;
+	virtual ~Engine();
+protected:
+	std::map<std::string, std::string>	_location;
 };
 
 #endif

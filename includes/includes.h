@@ -3,6 +3,8 @@
 # define NAME "WEBSERVER"
 # define DEFAULT_CONFIG "./conf/default.conf"
 
+extern volatile bool is_running;
+
 # include "data.h"
 # include "utils.h"
 # include "cgi.hpp"

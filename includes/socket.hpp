@@ -6,14 +6,16 @@
 class Socket
 {
 public:
-	Socket(const char *hostname, const char *port);
-	void init();
+	Socket(const std::string&, const std::string& port);
+	void	add_server(const std::string& servername, class Server *server);
+	void	init();
+	int 	get_socketfd();
 	~Socket();
 private:
 	std::string								_hostname;
 	std::string								_port;
 	int 									_socket_fd;
-	std::map<std::string, class *Server>	_server;
+	std::map<std::string, class Server *>	_server;
 	
 };
 
