@@ -1,10 +1,7 @@
 #ifndef REQUEST_HPP
 # define REQUEST_HPP
 
-# include <istream>
-# include <string>
-# include <map>
-
+# include "includes.h"
 class Request {
 	private:
 		std::string						_method;
@@ -13,8 +10,9 @@ class Request {
 		map<std::string, std::string>	_header;
 
 		void	parseRequestLine( std::string rLine );
-	public:
 		Request( int fd );
+	public:
+
 		~Request( void );
 
 
