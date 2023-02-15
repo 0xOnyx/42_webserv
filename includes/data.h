@@ -18,6 +18,8 @@
 # include <stdlib.h>
 # include <syslog.h>
 # include <stdint.h>
+# include <signal.h>
+# include <arpa/inet.h>
 # include <sys/stat.h>
 # include <sys/mman.h>
 

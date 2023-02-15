@@ -20,6 +20,7 @@ public:
 	void	init_socket(void);
 	void	listen(void);
 	~Containers();
+	struct poll_t	_poll
 private:
 	void	_parse_config(char *file);
 	void	_add_server(ServerConfig &config, class Server *server);

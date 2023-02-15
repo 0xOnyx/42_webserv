@@ -1,8 +1,11 @@
 #include "containers.hpp"
 
-Containers::Containers() :_binding(std::map<pair_str, class Socket *>())
+Containers::Containers() :_binding(std::map<pair_str, class Socket *>()), _poll()
 {
 	syslog(LOG_DEBUG, "[INFO]\tNew Containers create");
+	_poll.cb = handler_poll;
+	if (poll_create(&_poll) != 0)
+		throw std::runtime_error("Error to create poll");
 }
 
 void	Containers::read_config(char *path)
@@ -117,18 +120,34 @@ void	Containers::_parse_config(char *file)
 
 void	Containers::init_socket()
 {
-	_binding_type::iterator iterator;
+	_binding_type::iterator	iterator;
+	struct s_event			*data;
 
 	for (iterator = _binding.begin(); iterator != _binding.end(); iterator++)
 	{
 		syslog(LOG_DEBUG, "INIT socket for the host:port => %s:%s", iterator->first.first.c_str(), iterator->first.second.c_str());
 		iterator->second->init();
+		data = new struct s_event;
+		data->fd = iterator->second->get_socketfd();
+		data->socket = iterator->second;
+#if defined __linux__
+		if (poll_add(&_poll, iterator->second->get_socketfd(), EPOLLIN | EPOLLOUT | EPOLLET, data) != 0)
+			throw std::runtime_error("error to add to poll file descriptor");
+#endif
+#if defined __APPLE__
+		if (poll_add(&_poll, iterator->second->get_socketfd(), EVFILT_READ , data) != 0)
+			throw std::runtime_error("error to add to poll file descriptor");
+#endif
 	}
+
 }
 
-void	Containers::listen(void)
+void	Containers::listen()
 {
-
+	while (is_running){
+		if (poll_wait(&_poll, 20))
+			throw std::runtime_error("error during epoll process");
+	}
 }
 
 void	Containers::_add_server(ServerConfig &config, class Server *server)
@@ -146,5 +165,6 @@ void	Containers::_add_server(ServerConfig &config, class Server *server)
 
 Containers::~Containers()
 {
-
+	if (close(_poll.fd) != 0)
+		syslog(LOG_ERR, "failed to close poll %m");
 }

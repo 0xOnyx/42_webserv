@@ -12,6 +12,11 @@ void	Socket::add_server(const std::string& servername, class Server *server)
 		throw std::runtime_error("the server could not be put");
 }
 
+int 	Socket::get_socketfd()
+{
+	return (this->_socket_fd);
+}
+
 void	Socket::init()
 {
 	struct addrinfo		hints = {};

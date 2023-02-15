@@ -1,5 +1,22 @@
 #include "includes.h"
 
+volatile bool is_running = true;
+
+void	handler_sign(int sign)
+{
+	is_running = false;
+	syslog(LOG_INFO, "[STOP]\tstop signal receive!");
+}
+
+void	init_sign(void)
+{
+	struct sigaction	action = {};
+
+	action.sa_handler = &handler_sign;
+	if (sigaction(SIGTERM, &action, NULL) != 0 || sigaction(SIGQUIT, &action, NULL))
+		throw std::runtime_error("failed to set handler for signal");
+}
+
 int	main(int argc, char **argv)
 {
 	class Syslog		log;
@@ -7,6 +24,7 @@ int	main(int argc, char **argv)
 	class Containers	containers;
 
 	try{
+		init_sign();
 		if (argc != 2)
 			throw std::runtime_error("error argument not match");
 		if (*argv[1])

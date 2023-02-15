@@ -9,6 +9,7 @@ public:
 	Socket(const std::string&, const std::string& port);
 	void	add_server(const std::string& servername, class Server *server);
 	void	init();
+	int 	get_socketfd();
 	~Socket();
 private:
 	std::string								_hostname;
