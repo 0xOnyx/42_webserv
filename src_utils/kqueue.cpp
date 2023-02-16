@@ -6,17 +6,17 @@ int poll_create(poll_t *poll)
 	return ((poll->fd = kqueue()) == -1);
 }
 
-int poll_add(poll_t *poll, int fd, uint32_t events)
+int poll_add(poll_t *poll, int fd, uint32_t events, void *data)
 {
 	struct kevent change_event;
-	EV_SET(&change_event, fd, events, EV_ADD | EV_CLEAR, 0, 0, NULL);
+	EV_SET(&change_event, fd, events, EV_ADD | EV_CLEAR, 0, 0, data);
 	return (kevent(poll->fd, &change_event, 1, NULL, 0, NULL) == -1);
 }
 
-int poll_mod(poll_t *poll, int fd, uint32_t events)
+int poll_mod(poll_t *poll, int fd, uint32_t events, void *data)
 {
 	struct kevent change_event;
-	EV_SET(&change_event, fd, events, EV_ADD | EV_CLEAR, 0, 0, NULL);
+	EV_SET(&change_event, fd, events, EV_ADD | EV_CLEAR, 0, 0, data);
 	return (kevent(poll->fd, &change_event, 1, NULL, 0, NULL) == -1);
 }
 
@@ -37,7 +37,7 @@ int poll_wait(poll_t *poll, size_t max)
 
 // Process the events.
 	for (int i = 0; i < count; i++)
-		poll->cb(events[i].ident, events[i].filter, poll);
+		poll->cb(events[i].udata, events[i].flags, poll);
 
 	return (0);
 }

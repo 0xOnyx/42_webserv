@@ -1,6 +1,6 @@
 #include "includes.h"
 
-int	set_nonblocking(int sockfd)
+void	set_nonblocking(int sockfd)
 {
 	int	current_flag;
 

@@ -7,13 +7,13 @@ extern volatile bool is_running;
 
 # include "data.h"
 # include "utils.h"
-# include "cgi.hpp"
 # include "containers.hpp"
 # include "config.hpp"
 # include "engine.hpp"
 # include "server.hpp"
 # include "socket.hpp"
 # include "syslog.hpp"
+# include "cgi.hpp"
 # include "static_serv.hpp"
 
 #endif

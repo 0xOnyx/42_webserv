@@ -20,12 +20,12 @@ public:
 	void	init_socket(void);
 	void	listen(void);
 	~Containers();
-	struct poll_t	_poll
+	struct poll_t	_poll;
 private:
-	void	_parse_config(char *file);
 	void	_add_server(ServerConfig &config, class Server *server);
+	void	_parse_config(char *file);
 	typedef std::map<pair_str, class Socket *>	_binding_type;
 	_binding_type	_binding;
 };
 
-#endifx
+#endif

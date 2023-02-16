@@ -1,6 +1,6 @@
 #include "containers.hpp"
 
-Containers::Containers() :_binding(std::map<pair_str, class Socket *>()), _poll()
+Containers::Containers() :_poll(), _binding(std::map<pair_str, class Socket *>())
 {
 	syslog(LOG_DEBUG, "[INFO]\tNew Containers create");
 	_poll.cb = handler_poll;

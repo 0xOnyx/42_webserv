@@ -7,6 +7,7 @@
 # include <sstream>
 # include <iostream>
 # include <map>
+# include <vector>
 # include <unistd.h>
 # include <string.h>
 # include <errno.h>

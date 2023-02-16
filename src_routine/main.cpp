@@ -4,8 +4,11 @@ volatile bool is_running = true;
 
 void	handler_sign(int sign)
 {
-	is_running = false;
-	syslog(LOG_INFO, "[STOP]\tstop signal receive!");
+	if (sign == SIGTERM || sign == SIGQUIT)
+	{
+		is_running = false;
+		syslog(LOG_INFO, "[STOP]\tstop signal receive!");
+	}
 }
 
 void	init_sign(void)
