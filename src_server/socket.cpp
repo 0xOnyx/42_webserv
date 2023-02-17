@@ -15,6 +15,11 @@ void	Socket::add_server(const std::string& servername, class Server *server)
 		throw std::runtime_error("the server could not be put");
 }
 
+void	Socket::delete_buff(int socket)
+{
+	_buffer.erase(socket);
+}
+
 void	Socket::read_socket(int socket)
 {
 	int 											current_size;
@@ -26,7 +31,7 @@ void	Socket::read_socket(int socket)
 	if ((current_size = recv(
 			socket,
 			&current_buffer[size],
-			BUFFER_SIZE,
+			1,
 			0)) < 0)
 		syslog(LOG_ERR, "Error with socket %d %m", socket);
 	current_buffer.resize(size + current_size);

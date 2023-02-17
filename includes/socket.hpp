@@ -12,6 +12,7 @@ public:
 	void	add_server(const std::string& servername, class Server *server);
 	void	init();
 	int 	get_socketfd();
+	void	delete_buff(int socket);
 	~Socket();
 private:
 	std::string								_hostname;

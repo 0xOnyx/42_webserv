@@ -9,14 +9,14 @@ int poll_create(poll_t *poll)
 int poll_add(poll_t *poll, int fd, uint32_t events, void *data)
 {
 	struct kevent change_event;
-	EV_SET(&change_event, fd, events, EV_ADD | EV_CLEAR, 0, 0, data);
+	EV_SET(&change_event, fd, events, EV_ADD, 0, 0, data);
 	return (kevent(poll->fd, &change_event, 1, NULL, 0, NULL) == -1);
 }
 
 int poll_mod(poll_t *poll, int fd, uint32_t events, void *data)
 {
 	struct kevent change_event;
-	EV_SET(&change_event, fd, events, EV_ADD | EV_CLEAR, 0, 0, data);
+	EV_SET(&change_event, fd, events, EV_ADD, 0, 0, data);
 	return (kevent(poll->fd, &change_event, 1, NULL, 0, NULL) == -1);
 }
 
