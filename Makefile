@@ -44,7 +44,7 @@ ifndef DEBUG
 	DEBUG			= 0
 endif
 
-DEBUGING			= -g3 -fsanitize=address
+DEBUGING			= -g3 -fsanitize=address -fsanitize=undefined
 CXXFLAGS			= -Wall -Wextra -Werror -std=c++98
 
 

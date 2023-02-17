@@ -2,13 +2,11 @@
 # define SERVER_HPP
 # include "includes.h"
 
-class Engine;
-
 class Server
 {
 public:
 	Server();
-	void	set_error_page(std::string error);
+	void	set_error_page(std::string &error);
 	void	add_engine(std::string location, class Engine *engine);
 	~Server();
 private:

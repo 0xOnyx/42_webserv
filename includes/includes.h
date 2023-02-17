@@ -2,14 +2,15 @@
 # define INCLUDES_H
 # define NAME "WEBSERVER"
 # define DEFAULT_CONFIG "./conf/default.conf"
+# define DEFAULT_ERROR "./www/errorPages.html"
 
 extern volatile bool is_running;
 
 # include "data.h"
 # include "utils.h"
+# include "engine.hpp"
 # include "containers.hpp"
 # include "config.hpp"
-# include "engine.hpp"
 # include "server.hpp"
 # include "socket.hpp"
 # include "syslog.hpp"

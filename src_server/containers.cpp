@@ -11,22 +11,30 @@ Containers::Containers() :_poll(), _binding(std::map<pair_str, class Socket *>()
 void	Containers::read_config(char *path)
 {
 	char 								*buff;
+	char 								*write_buff;
 	int									fd_file;
 	size_t								size_file;
 
 	if (access(path, R_OK) != 0)
+	{
 		throw std::runtime_error("not read for the current file");
+	}
 	fd_file = open(path, O_RDONLY);
 	syslog(LOG_DEBUG, "open file %s", path);
 	if (fd_file < 0)
+	{
 		throw std::runtime_error(strerror(errno));
+	}
 	size_file = get_size_file(fd_file);
 	if ((buff = (char *)mmap(NULL, size_file, PROT_READ, MAP_PRIVATE, fd_file, 0)) == MAP_FAILED)
 	{
 		close(fd_file);
 		throw std::runtime_error("error mapping file");
 	}
-	this->_parse_config(buff);
+	write_buff = (char *)alloca(size_file + 1);
+	write_buff[size_file] = 0;
+	memcpy(write_buff, buff, size_file);
+	this->_parse_config(write_buff);
 	munmap((void *)buff, size_file);
 	close(fd_file);
 }
@@ -52,18 +60,16 @@ void	Containers::_parse_config(char *file)
 		if (keyword == "server")
 		{
 			syslog(LOG_DEBUG, "new server creation from file");
-			if (current_server != NULL)
-			{
+			if (current_server)
 				_add_server(config, current_server);
-				current_server = NULL;
-				location = std::map<std::string, std::string>();
-			}
-			else
-				current_server = new class Server();
+			location = std::map<std::string, std::string>();
+			current_server = new class Server();
 		}
 		else if (keyword == "listen")
 		{
 			ss >> keyword;
+			keyword.erase(keyword.find(';'), 1);
+			syslog(LOG_DEBUG, "listen => %s", keyword.c_str());
 			if (keyword.find(':') != std::string::npos)
 			{
 				config.listen.first = keyword.substr(0, keyword.find(':'));
@@ -80,10 +86,14 @@ void	Containers::_parse_config(char *file)
 			if (!current_server)
 				throw std::runtime_error("not set a servername if server not declare");
 			ss >> config.servername;
+			config.servername.erase(config.servername.find(';'), 1);
+			syslog(LOG_DEBUG, "servername => %s", config.servername.c_str());
 		}
 		else if (keyword == "error")
 		{
 			ss >> config.error;
+			config.error.erase(config.error.find(';'), 1);
+			syslog(LOG_DEBUG, "error page => %s", config.error.c_str());
 			if (!current_server)
 				throw std::runtime_error("not set a error if server not declare");
 			current_server->set_error_page(config.error);
@@ -95,27 +105,41 @@ void	Containers::_parse_config(char *file)
 				if (!current_server)
 					throw std::runtime_error("not set a location if server not declare");
 				if ((iterator_location = location.find("path")) == location.end() || iterator_location->second.length() <= 0)
-					throw std::runtime_error("the path is not set for the location");
+					throw std::runtime_error("the path is not set for the location");;
 				if ((iterator_location = location.find("CGI")) != location.end())
 				{
-					engine = dynamic_cast<Engine *>(new Cgi(location));
-					current_server->add_engine(iterator_location->second, engine);
+					engine = dynamic_cast<class Engine *>(new Cgi(location));
+					syslog(LOG_DEBUG, "add cgi engine");
+					current_server->add_engine(location["path"], engine);
 				}
 				else
 				{
-					engine = dynamic_cast<Engine *>(new Static_serv(location));
-					current_server->add_engine(iterator_location->second, engine);
+					engine = dynamic_cast<class Engine *>(new Static_serv(location));
+					syslog(LOG_DEBUG, "add Static server");
+					current_server->add_engine(location["path"], engine);
 				}
 				location = std::map<std::string, std::string>();
 			}
 			ss >> location["path"];
+			syslog(LOG_DEBUG, "new location => %s", location["path"].c_str());
 		}
-		else if (keyword == "index" || keyword == "methods" || keyword == "root" || keyword == "CGI" || keyword == "exec")
+		else if (keyword == "index" || keyword == "root" || keyword == "CGI" || keyword == "exec")
 		{
 			ss >> location[keyword];
+			location[keyword].erase(location[keyword].find(';'), 1);
+			syslog(LOG_DEBUG, "new value for location => %s : %s", keyword.c_str(), location[keyword].c_str());
+		}
+		else if (keyword == "methods")
+		{
+			std::string	out;
+			while (ss >> out)
+				location[keyword] += out;
+			location[keyword].erase(location[keyword].find(';'), 1);
+			syslog(LOG_DEBUG, "new value for location => %s : %s", keyword.c_str(), location[keyword].c_str());
 		}
 		token = strtok(NULL, "\n");
 	}
+	_add_server(config, current_server);
 }
 
 void	Containers::init_socket()

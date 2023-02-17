@@ -54,7 +54,7 @@ struct s_event
 
 void	handler_poll(void *data, uint32_t event, poll_t *poll);
 typedef std::pair<std::string, std::string> pair_str;
-int		set_nonblocking(int sockfd);
+void	set_nonblocking(int sockfd);
 size_t	get_size_file(int fd);
 
 #endif

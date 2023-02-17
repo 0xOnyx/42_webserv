@@ -11,6 +11,7 @@ void	handler_poll(void *data, uint32_t event, poll_t *poll)
 
 	sin_size = sizeof(struct sockaddr_storage);
 	event_data = static_cast<struct s_event *>(data);
+	std::cout << event << std::endl;
 	if (event_data->fd == event_data->socket->get_socketfd())
 	{
 		if ((new_socket = accept(event_data->fd, (struct sockaddr *)&client_addr, &sin_size)) < 0)
@@ -23,7 +24,7 @@ void	handler_poll(void *data, uint32_t event, poll_t *poll)
 		new_data->fd = new_socket;
 		new_data->socket = event_data->socket;
 #if defined __linux__
-		if (poll_add(poll, new_socket, EPOLLIN | EPOLLRDHUP | EPOLLET, new_data) != 0)
+		if (poll_add(poll, new_socket, EPOLLIN |EPOLLHUP | EPOLLRDHUP | EPOLLET, new_data) != 0)
 		{
 			syslog(LOG_WARNING, "failed to accept new connection %m");
 			delete new_data;
@@ -61,9 +62,8 @@ void	handler_poll(void *data, uint32_t event, poll_t *poll)
 		syslog(LOG_INFO, "new buffer from socket %d", event_data->fd);
 		event_data->socket->read_socket(event_data->fd);
 	}
-
 #if defined __linux__
-	else if (event & (EPOLLRDHUP | EPOLLHUP | EPOLLERR))
+	else if (event & (EPOLLRDHUP | EPOLLHUP | EPOLLERR))  //TODO: correct this and delete buffer to read_socket
 #endif
 #if defined __APPLE__
 	else if (event & (EV_EOF | EV_ERROR))

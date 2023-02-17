@@ -22,20 +22,29 @@ void	init_sign(void)
 
 int	main(int argc, char **argv)
 {
-	class Syslog		log;
-	std::ostringstream	error;
-	class Containers	containers;
+	class Syslog log;
+	std::ostringstream error;
+	class Containers containers;
 
-	try{
+	(void) argc;
+	try
+	{
 		init_sign();
-		if (argc != 2)
-			throw std::runtime_error("error argument not match");
-		if (*argv[1])
+		if (argv[1])
 			containers.read_config(argv[1]);
 		else
+		{
+			syslog(LOG_INFO, "default config is used");
 			containers.read_config(const_cast<char *>(static_cast<const char *>(DEFAULT_CONFIG)));
+		}
 		containers.init_socket();
 		containers.listen();
+	}
+	catch (std::out_of_range const &e)
+	{
+		error << "[BAD SYNTAX]\t" << e.what() << std::endl;
+		syslog(LOG_ERR, "%s", error.str().c_str());
+		return (EXIT_FAILURE);
 	}
 	catch(std::runtime_error const &e)
 	{

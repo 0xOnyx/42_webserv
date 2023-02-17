@@ -5,44 +5,37 @@ Socket::Socket(const std::string& hostname, const std::string& port)
 	_server(std::map<std::string, class Server *>()),
 	_buffer(std::map<int, std::vector<char> >())
 {
-	if (hostname.length() <= 0 && port.length() <= 0)
+	if (hostname.empty() && port.empty())
 		throw std::runtime_error("no hostname and port set");
 }
 
 void	Socket::add_server(const std::string& servername, class Server *server)
 {
-	if (_server.insert(std::pair<std::string, class Server *>(servername, server)).second)
+	if (!_server.insert(std::pair<std::string, class Server *>(servername, server)).second)
 		throw std::runtime_error("the server could not be put");
 }
 
 void	Socket::read_socket(int socket)
 {
+	int 											current_size;
 	std::map<int, std::vector<char> >::size_type	size;
-	std::map<int, std::vector<char> >::size_type	current_size;
 	std::vector<char>	&current_buffer = _buffer[socket];
 
 	size = current_buffer.size();
 	current_buffer.resize(size + BUFFER_SIZE);
-	while ((current_size = recv(
+	if ((current_size = recv(
 			socket,
 			&current_buffer[size],
 			BUFFER_SIZE,
-			MSG_DONTWAIT)) > 0)
-	{
-		size += current_size;
-		current_buffer.resize(size + BUFFER_SIZE);
-	}
-	if (size < 0)
-	{
+			0)) < 0)
 		syslog(LOG_ERR, "Error with socket %d %m", socket);
-	}
-	else if (false)  //TODO: how to set is finish ?
+	current_buffer.resize(size + current_size);
+	if (true)  //TODO: how to set is finish ?
 	{
-		size += current_size;
-		current_buffer.resize(size);
 		std::string s(current_buffer.begin(), current_buffer.end());
+		syslog(LOG_DEBUG, "current buffer %s", s.c_str());
 		//.. process request get servername and location name
-		current_buffer.clear();
+		//current_buffer.clear();
 	}
 }
 
