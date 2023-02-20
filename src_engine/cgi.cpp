@@ -5,7 +5,7 @@ Cgi::Cgi(std::map<std::string, std::string> location) : Engine(location)
 
 }
 
-void Cgi::Request(struct s_list *list)
+void Cgi::request(struct s_list *list)
 {
 	(void)list;
 }

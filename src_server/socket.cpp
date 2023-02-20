@@ -23,6 +23,8 @@ void	Socket::delete_buff(int socket)
 void	Socket::read_socket(int socket)
 {
 	int 											current_size;
+	std::string::size_type 							res_pos;
+	std::string 									current_str;
 	std::map<int, std::vector<char> >::size_type	size;
 	std::vector<char>	&current_buffer = _buffer[socket];
 
@@ -35,12 +37,18 @@ void	Socket::read_socket(int socket)
 			0)) < 0)
 		syslog(LOG_ERR, "Error with socket %d %m", socket);
 	current_buffer.resize(size + current_size);
-	if (true)  //TODO: how to set is finish ?
+	current_str = std::string(current_buffer.begin(), current_buffer.end());
+	if ((res_pos = current_str.find("\r\n\r\n")) != std::string::npos)  //TODO: how to set is finish ?
 	{
-		std::string s(current_buffer.begin(), current_buffer.end());
-		syslog(LOG_DEBUG, "current buffer %s", s.c_str());
+
+		std::string header = current_str.substr(0, res_pos);
+		std::string buff_rest = current_str.substr(res_pos, 0);
+
+		syslog(LOG_DEBUG, "New header %s", header.c_str());
 		//.. process request get servername and location name
-		//current_buffer.clear();
+
+		current_buffer.clear();
+		std::copy(buff_rest.begin(), buff_rest.end(), std::back_inserter(current_buffer));
 	}
 }
 

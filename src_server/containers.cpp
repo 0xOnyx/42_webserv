@@ -49,7 +49,6 @@ void	Containers::_parse_config(char *file)
 	std::map<std::string, std::string>::iterator	iterator_location;
 	struct ServerConfig								config;
 
-
 	current_server = NULL;
 	token = strtok(file, "\n");
 	while (token != NULL)
@@ -106,7 +105,7 @@ void	Containers::_parse_config(char *file)
 					throw std::runtime_error("not set a location if server not declare");
 				if ((iterator_location = location.find("path")) == location.end() || iterator_location->second.length() <= 0)
 					throw std::runtime_error("the path is not set for the location");;
-				if ((iterator_location = location.find("CGI")) != location.end())
+				if (location.find("CGI") != location.end())
 				{
 					engine = dynamic_cast<class Engine *>(new Cgi(location));
 					syslog(LOG_DEBUG, "add cgi engine");
@@ -163,14 +162,13 @@ void	Containers::init_socket()
 			throw std::runtime_error("error to add to poll file descriptor");
 #endif
 	}
-
 }
 
 void	Containers::listen()
 {
 	while (is_running){
 		if (poll_wait(&_poll, 20))
-			throw std::runtime_error("error during epoll process");
+			throw std::runtime_error("event during epoll process");
 	}
 }
 

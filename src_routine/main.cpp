@@ -4,7 +4,7 @@ volatile bool is_running = true;
 
 void	handler_sign(int sign)
 {
-	if (sign == SIGTERM || sign == SIGQUIT)
+	if (sign == SIGTERM || sign == SIGQUIT || sign == SIGINT)
 	{
 		is_running = false;
 		syslog(LOG_INFO, "[STOP]\tstop signal receive!");
@@ -16,8 +16,9 @@ void	init_sign(void)
 	struct sigaction	action = {};
 
 	action.sa_handler = &handler_sign;
-	if (sigaction(SIGTERM, &action, NULL) != 0 || sigaction(SIGQUIT, &action, NULL))
+	if (sigaction(SIGTERM, &action, NULL) || sigaction(SIGINT, &action, NULL) != 0 || sigaction(SIGQUIT, &action, NULL))
 		throw std::runtime_error("failed to set handler for signal");
+	syslog(LOG_INFO, "signal init for SIGTERM SIGQUIT");
 }
 
 int	main(int argc, char **argv)

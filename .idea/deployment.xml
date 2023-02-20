@@ -2,10 +2,10 @@
 <project version="4">
   <component name="PublishConfigData" serverName="Remote Host (d9a1c6e2-80ca-402c-ab62-099d49888efd)" remoteFilesAllowedToDisappearOnAutoupload="false">
     <serverData>
-      <paths name="Remote Host (d9a1c6e2-80ca-402c-ab62-099d49888efd)">
+      <paths name="Remote Host (b0272e1d-babb-4991-b514-72872dfdb88a)">
         <serverdata>
           <mappings>
-            <mapping deploy="/tmp/tmp.F9lZRYrnXN" local="$PROJECT_DIR$" />
+            <mapping deploy="/tmp/tmp.YYA2eFjF8O" local="$PROJECT_DIR$" />
           </mappings>
         </serverdata>
       </paths>
