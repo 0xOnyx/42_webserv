@@ -96,10 +96,8 @@ void	Request::parseHeader( std::string header ) {
 	
 	if (!header.compare(0, 1, " ") or !header.compare(0, 1, "	")) { 
 		std::string	last_key = *this->_h_index.rbegin();
-		std::cout << last_key << std::endl;
 		std::getline(ss, value);
 		value.erase(0, 1);
-		std::cout << value << std::endl;
 		this->headers[last_key].append(value);
 	} else {
 		std::getline(ss, key, ':');
@@ -118,6 +116,6 @@ const std::string	Request::getHeaderValue( const std::string& key ) {
 		return "Unkown Key";
 }
 
-const std::map<std::string, std::string>	getHeaders( void ) {
+const std::map<std::string, std::string>	Request::getHeaders( void ) {
 	return this->headers;
 }
