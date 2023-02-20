@@ -12,7 +12,7 @@ bool is_a_number(const std::string& s) {
     return true;
 }
 
-Request::Request( const char* & buffer ) {	
+Request::Request( const std::string & buffer ) {	
 	std::istringstream ss(buffer);
 	std::string token;
 
@@ -116,4 +116,8 @@ const std::string	Request::getHeaderValue( const std::string& key ) {
 		return it->second;
 	else
 		return "Unkown Key";
+}
+
+const std::map<std::string, std::string>	getHeaders( void ) {
+	return this->headers;
 }

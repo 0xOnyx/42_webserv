@@ -41,11 +41,12 @@ class Request {
 		std::map<std::string, std::string>	headers;
 		std::vector<std::string>	_h_index;
 
-		Request(const char* & buffer );
+		Request(const std::string & buffer );
 		~Request( void );
 
 		const std::string	getHeaderValue( const std::string& key );
-		
+		const std::map<std::string, std::string>	getHeaders( void );
+
 		class InvalidRequestLine: public std::exception {
 			virtual const char* what() const throw();
 		};
