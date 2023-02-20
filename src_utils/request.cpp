@@ -85,8 +85,6 @@ void	Request::parseRequestLine( std::string rLine ) {
 		throw Request::InvalidRequestLine();
 	if (!this->validMethod())
 		throw Request::InvalidMethod();
-	if (this->request_line[URI].compare(0,1, "/"))
-		throw Request::InvalidURI();
 	if (!this->validProtocol())
 		throw Request::InvalidProtocol();
 }
@@ -96,10 +94,20 @@ void	Request::parseHeader( std::string header ) {
 	std::string key;
 	std::string value;
 	
-	std::getline(ss, key, ':');
-	std::getline(ss, value);
-	value.erase(0,1);
-	this->headers[key] = value;
+	if (!header.compare(0, 1, " ") or !header.compare(0, 1, "	")) { 
+		std::string	last_key = *this->_h_index.rbegin();
+		std::cout << last_key << std::endl;
+		std::getline(ss, value);
+		value.erase(0, 1);
+		std::cout << value << std::endl;
+		this->headers[last_key].append(value);
+	} else {
+		std::getline(ss, key, ':');
+		this->_h_index.push_back(key);
+		std::getline(ss, value);
+		value.erase(0,1);
+		this->headers[key] = value;
+	}
 }
 
 const std::string	Request::getHeaderValue( const std::string& key ) {

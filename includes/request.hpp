@@ -30,6 +30,7 @@ class Request {
 	private:
 		static std::string	_valid_methods[];
 
+
 		void	parseRequestLine( std::string rLine );
 		void	parseHeader( std::string header);
 		bool	validMethod( void );
@@ -38,6 +39,7 @@ class Request {
 		std::string	request_line[3];
 		int			protocol[2];
 		std::map<std::string, std::string>	headers;
+		std::vector<std::string>	_h_index;
 
 		Request(const char* & buffer );
 		~Request( void );
