@@ -1,6 +1,6 @@
 #include "includes.h"
 
-void	handler_poll(void *data, uint32_t event, poll_t *poll)
+void	handler_poll(void *data, int event, poll_t *poll)
 {
 	struct s_event			*new_data;
 	struct s_event			*event_data;
@@ -55,7 +55,7 @@ void	handler_poll(void *data, uint32_t event, poll_t *poll)
 	else if (event & (EPOLLRDHUP | EPOLLHUP | EPOLLERR))  //TODO: correct this and delete buffer to read_socket
 #endif
 #if defined __APPLE__
-		else if (event & (EV_EOF | EV_ERROR))
+	else if (event == EV_ERROR)
 #endif
 	{
 		syslog(LOG_INFO, "Connexion is close for the socket %d", event_data->fd);
@@ -68,7 +68,7 @@ void	handler_poll(void *data, uint32_t event, poll_t *poll)
 	else if (event & EPOLLIN)
 #endif
 #if defined __APPLE__
-	else if (event & EV_READ)
+	else if (event == EVFILT_READ)
 #endif
 	{
 		syslog(LOG_DEBUG, "new buffer to read from socket %d", event_data->fd);
@@ -89,7 +89,7 @@ void	handler_poll(void *data, uint32_t event, poll_t *poll)
 	else if (event & EPOLLOUT)
 #endif
 #if defined __APPLE__
-	else if event & EV_WRITE)
+	else if (event & EVFILT_WRITE)
 #endif
 	{
 		syslog(LOG_DEBUG, "new buffer to write from socket %d", event_data->fd);

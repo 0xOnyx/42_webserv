@@ -23,7 +23,7 @@ int poll_mod(poll_t *poll, int fd, uint32_t events, void *data)
 int poll_del(poll_t *poll, int fd)
 {
 	struct kevent change_event;
-	EV_SET(&change_event, fd, 0, EV_DELETE, 0, 0, NULL);
+	EV_SET(&change_event, fd, EVFILT_WRITE | EVFILT_READ, EV_DELETE, 0, 0, NULL);
 	return (kevent(poll->fd, &change_event, 1, NULL, 0, NULL) == -1);
 }
 
@@ -37,7 +37,9 @@ int poll_wait(poll_t *poll, size_t max)
 
 // Process the events.
 	for (int i = 0; i < count; i++)
-		poll->cb(events[i].udata, events[i].flags, poll);
+		poll->cb(events[i].udata,
+			events[i].flags & EV_ERROR ? events[i].flags : events[i].filter,
+			poll);
 
 	return (0);
 }
