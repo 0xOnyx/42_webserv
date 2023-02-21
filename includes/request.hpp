@@ -3,6 +3,10 @@
 
 # include "includes.h"
 
+# define CR '\r'
+# define LF '\n'
+# define CRLF "\r\n"
+
 enum e_methods {
 	GET,
 	POST,

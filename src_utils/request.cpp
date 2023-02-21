@@ -18,9 +18,15 @@ Request::Request( const std::string & buffer )
 	std::string token;
 
 	std::getline(ss, token);
+    size_t  pos = token.find(CR);
+    if (pos != std::string::npos) {
+        token = token.erase(pos, 1); }
 	this->parseRequestLine(token);
 
 	while(std::getline(ss, token)) {
+        pos = token.find(CR);
+        if (pos != std::string::npos) {
+            token = token.erase(pos, 1); }
 		this->parseHeader(token);
 	}
 }
@@ -76,6 +82,8 @@ void	Request::parseRequestLine( std::string rLine ) {
 	std::istringstream ss(rLine);
 	std::string token;
 
+
+
 	for (int i = METHOD; i <= PROTOCOL; i++) {
 		if (std::getline(ss, token, ' '))
 			this->request_line[i] = token;
@@ -94,19 +102,12 @@ void	Request::parseHeader( std::string header ) {
 	std::istringstream ss(header);
 	std::string key;
 	std::string value;
-	
-	if (!header.compare(0, 1, " ") or !header.compare(0, 1, "	")) { 
-		std::string	last_key = *this->_h_index.rbegin();
-		std::getline(ss, value);
-		value.erase(0, 1);
-		this->_headers[last_key].append(value);
-	} else {
-		std::getline(ss, key, ':');
-		this->_h_index.push_back(key);
-		std::getline(ss, value);
-		value.erase(0,1);
-		this->_headers[key] = value;
-	}
+
+    std::getline(ss, key, ':');
+    this->_h_index.push_back(key);
+    std::getline(ss, value);
+    value.erase(0,1);
+    this->_headers[key] = value;
 }
 
 std::string	Request::getHeaderValue( const std::string& key ) {
