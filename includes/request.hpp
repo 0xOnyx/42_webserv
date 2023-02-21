@@ -37,6 +37,8 @@ public:
     std::string	request_line[3];
     int			protocol[2];
     int         status;
+    std::string _body;
+    size_t      content_length;
 
     std::map<std::string, std::string>	_headers;
     std::vector<std::string>	_h_index;
@@ -69,6 +71,8 @@ private:
     bool	validMethod( );
     bool	validProtocol( );
     bool    tokenize( std::string & buffer, std::string & token, std::string delim );
+    size_t  has_body( void );
+    void    set_body( std::string & body );
 };
 
 #endif
