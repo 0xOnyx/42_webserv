@@ -3,8 +3,8 @@
 std::string	Request::_valid_methods[] = {"GET", "POST", "DELETE"};
 
 bool is_a_number(const std::string& s) {
-    
-	for (std::string::const_iterator it = s.begin(); it != s.end(); ++it) {
+
+    for (std::string::const_iterator it = s.begin(); it != s.end(); ++it) {
         if (!isdigit(*it)) {
             return false;
         }
@@ -12,114 +12,111 @@ bool is_a_number(const std::string& s) {
     return true;
 }
 
-Request::Request( const std::string & buffer )
-{
-	std::istringstream ss(buffer);
-	std::string token;
+Request::Request( std::string & buffer ) : status(200) {
+    std::string token;
 
-	std::getline(ss, token);
-    size_t  pos = token.find(CR);
-    if (pos != std::string::npos) {
-        token = token.erase(pos, 1); }
-	this->parseRequestLine(token);
+    tokenize(buffer, token, CRLF);
+    this->parseRequestLine(token);
 
-	while(std::getline(ss, token)) {
-        pos = token.find(CR);
-        if (pos != std::string::npos) {
-            token = token.erase(pos, 1); }
-		this->parseHeader(token);
-	}
+    while(tokenize(buffer, token, CRLF) and token.size()) {
+        this->parseHeader(token); }
 }
 
 Request::~Request( void ) {}
 
 const char* Request::InvalidRequestLine::what() const throw( ){
-	return "Invalid Request Line";
+    return "Invalid Request Line";
 }
 
 const char* Request::InvalidMethod::what() const throw( ){
-	return "Invalid HTTP Method";
+    return "Invalid HTTP Method";
 }
 
 const char* Request::InvalidURI::what() const throw( ){
-	return "Invalid URI";
+    return "Invalid URI";
 }
 
 const char* Request::InvalidProtocol::what() const throw( ){
-	return "Invalid Protocol";
+    return "Invalid Protocol";
 }
 
 bool	Request::validMethod( ) {
-	for (int i = 0; i < NUM_METHODS; i++) {
-		if (request_line[METHOD] == Request::_valid_methods[i])
-			return true;
-	}
-	return false;
+    for (int i = 0; i < NUM_METHODS; i++) {
+        if (request_line[METHOD] == Request::_valid_methods[i])
+            return true;
+    }
+    return false;
 }
 
 bool	Request::validProtocol( void ) {
-	std::istringstream ss(this->request_line[PROTOCOL]);
-	std::string token;
+    std::istringstream ss(this->request_line[PROTOCOL]);
+    std::string token;
 
-	if (!std::getline(ss, token, '/'))
-		return false;
-	if (token != "HTTP")
-		return false;
-	if (!std::getline(ss, token, '.'))
-		return false;
-	if (!is_a_number(token))
-		return false;
-	this->protocol[MAJOR] = std::atoi(token.data());
-	if (!std::getline(ss, token, '.'))
-		return false;
-	if (!is_a_number(token))
-		return false;
-	this->protocol[MINOR] = std::atoi(token.data());
-	return true;
+    if (!std::getline(ss, token, '/') and token != "HTTP")
+        return false;
+    if (!std::getline(ss, token, '.') and !is_a_number(token))
+        return false;
+    this->protocol[MAJOR] = std::atoi(token.data());
+    if (!std::getline(ss, token, '.') and !is_a_number(token))
+        return false;
+    this->protocol[MINOR] = std::atoi(token.data());
+    return true;
 }
 
 void	Request::parseRequestLine( std::string rLine ) {
-	std::istringstream ss(rLine);
-	std::string token;
+    std::istringstream ss(rLine);
+    std::string token;
 
-
-
-	for (int i = METHOD; i <= PROTOCOL; i++) {
-		if (std::getline(ss, token, ' '))
-			this->request_line[i] = token;
-		else
-			throw Request::InvalidRequestLine();
-	}
-	if (std::getline (ss, token, ' '))
-		throw Request::InvalidRequestLine();
-	if (!this->validMethod())
-		throw Request::InvalidMethod();
-	if (!this->validProtocol())
-		throw Request::InvalidProtocol();
+    for (int i = METHOD; i <= PROTOCOL; i++) {
+        if (std::getline(ss, token, ' '))
+            this->request_line[i] = token;
+        else
+            throw Request::InvalidRequestLine();
+    }
+    if (std::getline (ss, token, ' '))
+        throw Request::InvalidRequestLine();
+    if (!this->validMethod())
+        throw Request::InvalidMethod();
+    if (!this->validProtocol())
+        throw Request::InvalidProtocol();
 }
 
-void	Request::parseHeader( std::string header ) {
-	std::istringstream ss(header);
-	std::string key;
-	std::string value;
+bool	Request::parseHeader( std::string header ) {
+    std::string key;
 
-    std::getline(ss, key, ':');
-    this->_h_index.push_back(key);
-    std::getline(ss, value);
-    value.erase(0,1);
-    this->_headers[key] = value;
+    if (!header.compare(0, 1, " ") or !header.compare(0, 1, "	")) {
+        this->status = 400;
+        return false;
+    } else {
+        tokenize(header, key, ": ");
+        this->_h_index.push_back(key);
+        this->_headers[key] = header;
+        return true;
+    }
 }
 
 std::string	Request::getHeaderValue( const std::string& key ) {
-	std::map<std::string, std::string>::iterator it;
+    std::map<std::string, std::string>::iterator it;
 
-	it = _headers.find(key);
-	if (it != this->_headers.end())
-		return it->second;
-	else
-		return "";
+    it = _headers.find(key);
+    if (it != this->_headers.end())
+        return it->second;
+    else
+        return "";
 }
 
-std::map<std::string, std::string> &Request::getHeaders() {
-	return this->_headers;
+std::map<std::string, std::string> &    Request::getHeaders() {
+    return this->_headers;
+}
+
+bool Request::tokenize( std::string & buffer, std::string & token, std::string delim ) {
+    size_t pos = buffer.find(delim);
+    if ( pos != std::string::npos ) {
+        token.clear();
+        token = buffer.substr(0, pos);
+        buffer.erase(0, pos + delim.size());
+        return true;
+    } else {
+        return false;
+    }
 }
