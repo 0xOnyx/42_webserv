@@ -37,6 +37,7 @@ public:
     std::string	request_line[3];
     int			protocol[2];
     int         status;
+
     std::map<std::string, std::string>	_headers;
     std::vector<std::string>	_h_index;
 
