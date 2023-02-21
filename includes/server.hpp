@@ -11,6 +11,7 @@ public:
 	std::vector<char>	parse_request(Request &request, std::vector<char> &rest_buff);
 	~Server();
 private:
+	//void				read_body(Request &request, std::vector<char> &rest_buff);
 	std::string 							_error_page;
 	std::map<std::string, class Engine *>	_location;
 };

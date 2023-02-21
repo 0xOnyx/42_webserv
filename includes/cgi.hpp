@@ -6,7 +6,7 @@ class Cgi: public Engine
 {
 public:
 	Cgi(std::map<std::string, std::string> location);
-	virtual std::string	request(struct s_list *list);
+	virtual std::string	process_request(Request &request);
 	virtual ~Cgi();
 };
 

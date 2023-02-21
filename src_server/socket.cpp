@@ -35,7 +35,7 @@ int 	Socket::read_socket(int socket)
 	if ((current_size = recv(
 			socket,
 			&current_buffer[size],
-			1,
+			BUFFER_SIZE,
 			0)) < 0)
 		syslog(LOG_ERR, "Error with socket to read %d %m", socket);
 	current_buffer.resize(size + current_size);
@@ -50,7 +50,7 @@ int 	Socket::read_socket(int socket)
 		syslog(LOG_DEBUG, "value of request header -> %s", header.c_str());
 		try
 		{
-			Request 											request(header);
+			Request 											request(socket, header);
 			std::string											host;
 			std::string::size_type								pos;
 			std::map<std::string, class Server *>::iterator		iter;
@@ -63,8 +63,12 @@ int 	Socket::read_socket(int socket)
 				pos = host.find(':');
 				host = host.substr(0, pos);
 			}
+			syslog(LOG_DEBUG, "search server for %s", host.c_str());
 			if ((iter = _server.find(host)) == _server.end())
-				throw std::runtime_error("error no server found");
+			{
+				iter = _server.begin();
+				syslog(LOG_DEBUG, "no server found for %s", host.c_str());
+			}
 			current_write = iter->second->parse_request(request, current_buffer);
 		}
 		catch(std::exception const &e)

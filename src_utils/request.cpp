@@ -12,7 +12,7 @@ bool is_a_number(const std::string& s) {
     return true;
 }
 
-Request::Request( std::string & buffer ) : status(200) {
+Request::Request( int _sockfd, std::string & buffer ) : socketfd(_sockfd), status(200) {
     std::string token;
 
     tokenize(buffer, token, CRLF);

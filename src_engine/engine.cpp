@@ -5,9 +5,9 @@ Engine::Engine(std::map<std::string, std::string> location) : _location(location
 
 }
 
-std::string	Engine::request(std::string header)
+std::string	Engine::process_request(Request &request)
 {
-	(void)header;
+	(void)request;
 	return (std::string(""));
 }
 

@@ -1,14 +1,7 @@
 #ifndef REQUEST_HPP
 # define REQUEST_HPP
 
-# include "includes.h"
-
-#include <iostream>
-#include <sstream>
-#include <map>
-#include <cctype>
-#include <cstdlib>
-#include <vector>
+# include "data.h"
 
 # define CR '\r'
 # define LF '\n'
@@ -34,6 +27,7 @@ enum {
 
 class Request {
 public:
+	int 		socketfd;
     std::string	request_line[3];
     int			protocol[2];
     int         status;
@@ -41,7 +35,7 @@ public:
     std::map<std::string, std::string>	_headers;
     std::vector<std::string>	_h_index;
 
-    Request( std::string & buffer );
+    Request( int _socketfd, std::string & buffer );
     ~Request( void );
 
     std::string	getHeaderValue( const std::string& key );

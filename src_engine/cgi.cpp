@@ -5,9 +5,9 @@ Cgi::Cgi(std::map<std::string, std::string> location) : Engine(location)
 
 }
 
-std::string Cgi::request(struct s_list *list)
+std::string Cgi::process_request(Request &request)
 {
-	(void)list;
+	(void)request;
 	return (std::string());
 }
 

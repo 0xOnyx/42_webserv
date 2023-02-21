@@ -39,14 +39,36 @@ void	Containers::read_config(char *path)
 	close(fd_file);
 }
 
-void	Containers::_parse_config(char *file)
+void	Containers::_add_location(class Server *current_server, std::map<std::string, std::string>	&location)
 {
 	class Engine									*engine;
+	std::map<std::string, std::string>::iterator	iterator_location;
+
+	if (!current_server)
+		throw std::runtime_error("not set a location if server not declare");
+	if ((iterator_location = location.find("path")) == location.end() || iterator_location->second.length() <= 0)
+		throw std::runtime_error("the path is not set for the location");;
+	if (location.find("CGI") != location.end())
+	{
+		engine = dynamic_cast<class Engine *>(new Cgi(location));
+		syslog(LOG_DEBUG, "add cgi engine");
+		current_server->add_engine(location["path"], engine);
+	}
+	else
+	{
+		engine = dynamic_cast<class Engine *>(new Static_serv(location));
+		syslog(LOG_DEBUG, "add Static server");
+		current_server->add_engine(location["path"], engine);
+	}
+	location = std::map<std::string, std::string>();
+}
+
+void	Containers::_parse_config(char *file)
+{
 	class Server									*current_server;
 	char	 										*token;
 	std::string 									keyword;
 	std::map<std::string, std::string>				location;
-	std::map<std::string, std::string>::iterator	iterator_location;
 	struct ServerConfig								config;
 
 	current_server = NULL;
@@ -60,7 +82,11 @@ void	Containers::_parse_config(char *file)
 		{
 			syslog(LOG_DEBUG, "new server creation from file");
 			if (current_server)
+			{
+				if (!location.empty())
+					_add_location(current_server, location);
 				_add_server(config, current_server);
+			}
 			location = std::map<std::string, std::string>();
 			current_server = new class Server();
 		}
@@ -100,25 +126,7 @@ void	Containers::_parse_config(char *file)
 		else if (keyword == "location")
 		{
 			if (!location.empty())
-			{
-				if (!current_server)
-					throw std::runtime_error("not set a location if server not declare");
-				if ((iterator_location = location.find("path")) == location.end() || iterator_location->second.length() <= 0)
-					throw std::runtime_error("the path is not set for the location");;
-				if (location.find("CGI") != location.end())
-				{
-					engine = dynamic_cast<class Engine *>(new Cgi(location));
-					syslog(LOG_DEBUG, "add cgi engine");
-					current_server->add_engine(location["path"], engine);
-				}
-				else
-				{
-					engine = dynamic_cast<class Engine *>(new Static_serv(location));
-					syslog(LOG_DEBUG, "add Static server");
-					current_server->add_engine(location["path"], engine);
-				}
-				location = std::map<std::string, std::string>();
-			}
+				_add_location(current_server, location);
 			ss >> location["path"];
 			syslog(LOG_DEBUG, "new location => %s", location["path"].c_str());
 		}
@@ -138,6 +146,8 @@ void	Containers::_parse_config(char *file)
 		}
 		token = strtok(NULL, "\n");
 	}
+	if (!location.empty())
+		_add_location(current_server, location);
 	_add_server(config, current_server);
 }
 

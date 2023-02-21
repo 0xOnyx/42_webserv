@@ -5,10 +5,19 @@ Static_serv::Static_serv(std::map <std::string, std::string> location) : Engine(
 
 }
 
-std::string	Static_serv::request(struct s_list *list)
+std::string	Static_serv::process_request(Request &request)
 {
-	(void)list;
-	return (std::string(""));
+	std::string 	res_http;
+	std::string 	path;
+
+	(void)request;
+
+	if (_location["methods"] != "GET")
+	{
+		//create not authorized Responsse
+	}
+
+	return (res_http);
 }
 
 Static_serv::~Static_serv()

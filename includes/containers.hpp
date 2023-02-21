@@ -22,6 +22,7 @@ public:
 	~Containers();
 	struct poll_t	_poll;
 private:
+	void	_add_location(class Server *current_server, std::map<std::string, std::string>	&location);
 	void	_add_server(ServerConfig &config, class Server *server);
 	void	_parse_config(char *file);
 	typedef std::map<pair_str, class Socket *>	_binding_type;
