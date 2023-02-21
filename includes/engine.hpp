@@ -11,7 +11,7 @@ class Engine
 {
 public:
 	Engine(std::map<std::string, std::string> location);
-	virtual	void request(std::string header) = 0;
+	virtual	std::string request(std::string header);
 	virtual ~Engine();
 protected:
 	std::map<std::string, std::string>	_location;

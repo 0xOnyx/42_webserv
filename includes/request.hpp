@@ -1,12 +1,7 @@
 #ifndef REQUEST_HPP
 # define REQUEST_HPP
 
-#include <iostream>
-#include <sstream>
-#include <map>
-#include <cctype>
-#include <cstdlib>
-#include <vector>
+# include "includes.h"
 
 enum e_methods {
 	GET,
@@ -27,25 +22,17 @@ enum {
 };
 
 class Request {
-	private:
-		static std::string	_valid_methods[];
-
-
-		void	parseRequestLine( std::string rLine );
-		void	parseHeader( std::string header);
-		bool	validMethod( void );
-		bool	validProtocol( void );
-	public:
+public:
 		std::string	request_line[3];
 		int			protocol[2];
-		std::map<std::string, std::string>	headers;
+		std::map<std::string, std::string>	_headers;
 		std::vector<std::string>	_h_index;
 
 		Request(const std::string & buffer );
 		~Request( void );
 
-		const std::string	getHeaderValue( const std::string& key );
-		const std::map<std::string, std::string>	getHeaders( void );
+		std::string	getHeaderValue( const std::string& key );
+		std::map<std::string, std::string> &getHeaders();
 
 		class InvalidRequestLine: public std::exception {
 			virtual const char* what() const throw();
@@ -62,7 +49,12 @@ class Request {
 		class InvalidProtocol: public std::exception {
 			virtual const char* what() const throw();
 		};
-
+private:
+	static 	std::string	_valid_methods[];
+	void	parseRequestLine( std::string rLine );
+	void	parseHeader( std::string header);
+	bool	validMethod( );
+	bool	validProtocol( );
 };
 
 #endif

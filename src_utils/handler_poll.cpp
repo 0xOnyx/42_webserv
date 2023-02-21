@@ -71,8 +71,42 @@ void	handler_poll(void *data, uint32_t event, poll_t *poll)
 	else if (event & EV_READ)
 #endif
 	{
-		syslog(LOG_INFO, "new buffer from socket %d", event_data->fd);
-		event_data->socket->read_socket(event_data->fd);
+		syslog(LOG_DEBUG, "new buffer to read from socket %d", event_data->fd);
+		if (event_data->socket->read_socket(event_data->fd))
+		{
+#if defined __linux__
+			if (poll_mod(poll, event_data->fd, EPOLLOUT | EPOLLHUP | EPOLLRDHUP, data) != 0 )
+				syslog(LOG_WARNING, "failed to modify connexion connection for the socket %d %m", event_data->fd);
+#endif
+#if defined __APPLE__
+			if (poll_mod(poll, event_data->fd, EVFILT_WRITE, data) != 0)
+				syslog(LOG_WARNING, "failed to modify connexion connection for the socket %d %m", event_data->fd);
+#endif
+		}
 	}
 
+#if defined __linux__
+	else if (event & EPOLLOUT)
+#endif
+#if defined __APPLE__
+	else if event & EV_WRITE)
+#endif
+	{
+		syslog(LOG_DEBUG, "new buffer to write from socket %d", event_data->fd);
+		if (event_data->socket->write_socket(event_data->fd))
+		{
+#if defined __linux__
+			if (poll_del(poll, event_data->fd) != 0)
+				syslog(LOG_WARNING, "failed to delete socket from poll %d %m", event_data->fd);
+#endif
+#if defined __APPLE__
+			if (poll_del(poll, event_data->fd)  != 0)
+					syslog(LOG_WARNING, "failed to delete socket from poll %d %m", event_data->fd);
+#endif
+			close(event_data->fd);
+			syslog(LOG_INFO, "close socket %d", event_data->fd);
+			delete event_data;
+			event_data = NULL;
+		}
+	}
 }

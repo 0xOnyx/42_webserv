@@ -8,15 +8,16 @@ extern volatile bool is_running;
 
 # include "data.h"
 # include "utils.h"
+# include "request.hpp"
 # include "engine.hpp"
 # include "containers.hpp"
 # include "config.hpp"
 # include "server.hpp"
 # include "socket.hpp"
+# include "request.hpp"
 # include "syslog.hpp"
 # include "cgi.hpp"
 # include "static_serv.hpp"
-# include "request.hpp"
 # include "getNextLine.hpp"
 
 #endif

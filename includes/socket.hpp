@@ -8,7 +8,8 @@ class Socket
 {
 public:
 	Socket(const std::string&, const std::string& port);
-	void	read_socket(int socket);
+	int 	read_socket(int socket);
+	int 	write_socket(int socket);
 	void	add_server(const std::string& servername, class Server *server);
 	void	init();
 	int 	get_socketfd();
@@ -19,8 +20,8 @@ private:
 	std::string								_port;
 	int 									_socket_fd;
 	std::map<std::string, class Server *>	_server;
-	std::map<int, std::vector<char> >		_buffer;
-	
+	std::map<int, std::vector<char> >		_read_buffer;
+	std::map<int, std::vector<char> >		_write_buffer;
 };
 
 #endif

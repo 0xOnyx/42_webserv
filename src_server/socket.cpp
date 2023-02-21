@@ -1,9 +1,10 @@
 #include "socket.hpp"
 
 Socket::Socket(const std::string& hostname, const std::string& port)
-	:_hostname(hostname), _port(port), _socket_fd(-1),
-	_server(std::map<std::string, class Server *>()),
-	_buffer(std::map<int, std::vector<char> >())
+	: _hostname(hostname), _port(port), _socket_fd(-1),
+	  _server(std::map<std::string, class Server *>()),
+	  _read_buffer(std::map<int, std::vector<char> >()),
+	  _write_buffer(std::map<int, std::vector<char> >())
 {
 	if (hostname.empty() && port.empty())
 		throw std::runtime_error("no hostname and port set");
@@ -17,16 +18,17 @@ void	Socket::add_server(const std::string& servername, class Server *server)
 
 void	Socket::delete_buff(int socket)
 {
-	_buffer.erase(socket);
+	_read_buffer.erase(socket);
 }
 
-void	Socket::read_socket(int socket)
+int 	Socket::read_socket(int socket)
 {
-	int 											current_size;
-	std::string::size_type 							res_pos;
-	std::string 									current_str;
-	std::map<int, std::vector<char> >::size_type	size;
-	std::vector<char>	&current_buffer = _buffer[socket];
+	int 									current_size;
+	std::string::size_type 					res_pos;
+	std::string 							current_str;
+	std::vector<char>::size_type			size;
+	std::vector<char>	&current_buffer 	= _read_buffer[socket];
+	std::vector<char>	&current_write 		= _write_buffer[socket];
 
 	size = current_buffer.size();
 	current_buffer.resize(size + BUFFER_SIZE);
@@ -35,21 +37,66 @@ void	Socket::read_socket(int socket)
 			&current_buffer[size],
 			1,
 			0)) < 0)
-		syslog(LOG_ERR, "Error with socket %d %m", socket);
+		syslog(LOG_ERR, "Error with socket to read %d %m", socket);
 	current_buffer.resize(size + current_size);
 	current_str = std::string(current_buffer.begin(), current_buffer.end());
 	if ((res_pos = current_str.find("\r\n\r\n")) != std::string::npos)  //TODO: how to set is finish ?
 	{
-
 		std::string header = current_str.substr(0, res_pos);
 		std::string buff_rest = current_str.substr(res_pos, 0);
 
-		syslog(LOG_DEBUG, "New header %s", header.c_str());
-		//.. process request get servername and location name
-
 		current_buffer.clear();
 		std::copy(buff_rest.begin(), buff_rest.end(), std::back_inserter(current_buffer));
+		syslog(LOG_DEBUG, "value of request header -> %s", header.c_str());
+		try
+		{
+			Request 											request(header);
+			std::string											host;
+			std::string::size_type								pos;
+			std::map<std::string, class Server *>::iterator		iter;
+
+			syslog(LOG_DEBUG, "New header %s", header.c_str());
+			if ((host = request.getHeaderValue("Host")).empty())
+				host = _server.begin()->first;
+			else if (host.find(':') != std::string::npos)
+			{
+				pos = host.find(':');
+				host = host.substr(0, pos);
+			}
+			if ((iter = _server.find(host)) == _server.end())
+				throw std::runtime_error("error no server found");
+			current_write = iter->second->parse_request(request, current_buffer);
+		}
+		catch(std::exception const &e)
+		{
+			/// TODO : create request 400
+			syslog(LOG_DEBUG, "bad request error 400 %s", e.what());
+		}
+		return (1);
 	}
+	return (0);
+}
+
+int	Socket::write_socket(int socket)
+{
+	ssize_t 						current_size;
+	ssize_t 						to_send;
+	std::vector<char>				&current_write = _write_buffer[socket];
+	std::vector<char>::size_type	size;
+
+	size = current_write.size();
+	to_send = size >= BUFFER_SIZE ? BUFFER_SIZE : (ssize_t)size;
+	if ((current_size = send(socket, current_write.data(), to_send, 0 )) < 0)
+		syslog(LOG_ERR, "Error with socket to write %d %m ", socket);
+	current_write.resize(size - current_size);
+	if (current_write.empty())
+	{
+		syslog(LOG_INFO, "finish to send all element from %d", socket);
+		_write_buffer.erase(socket);
+		_read_buffer.erase(socket);
+		return (1);
+	}
+	return (0);
 }
 
 int 	Socket::get_socketfd()

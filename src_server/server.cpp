@@ -18,6 +18,13 @@ void	Server::set_error_page(std::string &error)
 	_error_page = error;
 }
 
+std::vector<char>	Server::parse_request(Request &request, std::vector<char> &rest_buff)
+{
+	(void)request;
+	(void)rest_buff;
+	return (std::vector<char>());
+}
+
 Server::~Server()
 {
 

@@ -1,4 +1,4 @@
-#include "includes.hpp"
+#include "includes.h"
 
 std::string	Request::_valid_methods[] = {"GET", "POST", "DELETE"};
 
@@ -12,7 +12,8 @@ bool is_a_number(const std::string& s) {
     return true;
 }
 
-Request::Request( const std::string & buffer ) {	
+Request::Request( const std::string & buffer )
+{
 	std::istringstream ss(buffer);
 	std::string token;
 
@@ -42,9 +43,9 @@ const char* Request::InvalidProtocol::what() const throw( ){
 	return "Invalid Protocol";
 }
 
-bool	Request::validMethod( void ) {
+bool	Request::validMethod( ) {
 	for (int i = 0; i < NUM_METHODS; i++) {
-		if (this->request_line[METHOD].compare(Request::_valid_methods[i]) == 0)
+		if (request_line[METHOD] == Request::_valid_methods[i])
 			return true;
 	}
 	return false;
@@ -56,7 +57,7 @@ bool	Request::validProtocol( void ) {
 
 	if (!std::getline(ss, token, '/'))
 		return false;
-	if (token.compare("HTTP"))
+	if (token != "HTTP")
 		return false;
 	if (!std::getline(ss, token, '.'))
 		return false;
@@ -98,24 +99,26 @@ void	Request::parseHeader( std::string header ) {
 		std::string	last_key = *this->_h_index.rbegin();
 		std::getline(ss, value);
 		value.erase(0, 1);
-		this->headers[last_key].append(value);
+		this->_headers[last_key].append(value);
 	} else {
 		std::getline(ss, key, ':');
 		this->_h_index.push_back(key);
 		std::getline(ss, value);
 		value.erase(0,1);
-		this->headers[key] = value;
+		this->_headers[key] = value;
 	}
 }
 
-const std::string	Request::getHeaderValue( const std::string& key ) {
-	std::map<std::string, std::string>::iterator it = headers.find(key);
-	if (it != this->headers.end())
+std::string	Request::getHeaderValue( const std::string& key ) {
+	std::map<std::string, std::string>::iterator it;
+
+	it = _headers.find(key);
+	if (it != this->_headers.end())
 		return it->second;
 	else
-		return "Unkown Key";
+		return "";
 }
 
-const std::map<std::string, std::string>	Request::getHeaders( void ) {
-	return this->headers;
+std::map<std::string, std::string> &Request::getHeaders() {
+	return this->_headers;
 }

@@ -5,9 +5,10 @@ Static_serv::Static_serv(std::map <std::string, std::string> location) : Engine(
 
 }
 
-void	Static_serv::Request(struct s_list *list)
+std::string	Static_serv::request(struct s_list *list)
 {
 	(void)list;
+	return (std::string(""));
 }
 
 Static_serv::~Static_serv()

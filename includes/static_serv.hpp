@@ -6,7 +6,7 @@ class Static_serv: public Engine
 {
 public:
 	Static_serv(std::map<std::string, std::string> location);
-	void	request(struct s_list *list);
+	std::string	request(struct s_list *list);
 	~Static_serv();
 private:
 
