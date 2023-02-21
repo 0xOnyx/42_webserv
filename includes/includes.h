@@ -16,5 +16,7 @@ extern volatile bool is_running;
 # include "syslog.hpp"
 # include "cgi.hpp"
 # include "static_serv.hpp"
+# include "request.hpp"
+# include "getNextLine.hpp"
 
 #endif
