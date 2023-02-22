@@ -86,6 +86,7 @@ private:
     bool	validProtocol( );
     bool    tokenize( std::string & buffer, std::string & token, std::string delim );
     int     tokenizeURI( std::string & buffer, std::string & token, std::string array, bool trim);
+    std::map<std::string, std::string>    getQUERIES();
 };
 
 #endif

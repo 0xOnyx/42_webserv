@@ -247,3 +247,23 @@ std::string Request::getURIComp( int component ) {
 
     return result;
 }
+
+std::map<std::string, std::string>   Request::getQUERIES() {
+    std::string token(this->_URI[QUERY].second);
+    token.erase(0,1);
+    std::stringstream tmp(token);
+    token.clear();
+    std::map<std::string, std::string>  result;
+
+    std::vector<std::string>  list;
+    while (std::getline(tmp, token, '&')) {
+        list.push_back(token);
+    }
+    for (std::vector<std::string>::iterator it = list.begin(); it != list.end(); it++ ) {
+        std::stringstream query(*it);
+        std::string key;
+        std::getline(query, key, '=');
+        result[key] = query;
+    }
+    return (result);
+}
