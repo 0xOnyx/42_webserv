@@ -19,7 +19,7 @@ Request::Request( std::string & buffer ) : status(200) {
     tokenize(buffer, token, CRLF);
     this->parseRequestLine(token);
 
-    while(tokenize(buffer, token, CRLF) and token.size()) {
+    while(tokenize(buffer, token, CRLF) && token.size()) {
         this->parseHeader(token); }
 
     this->parseURI(this->request_line[URI]);
@@ -55,12 +55,12 @@ bool	Request::validProtocol( void ) {
     std::istringstream ss(this->request_line[PROTOCOL]);
     std::string token;
 
-    if (!std::getline(ss, token, '/') and token != "HTTP")
+    if (!std::getline(ss, token, '/') && token != "HTTP")
         return false;
-    if (!std::getline(ss, token, '.') and !is_a_number(token))
+    if (!std::getline(ss, token, '.') && !is_a_number(token))
         return false;
     this->protocol[MAJOR] = std::atoi(token.data());
-    if (!std::getline(ss, token, '.') and !is_a_number(token))
+    if (!std::getline(ss, token, '.') && !is_a_number(token))
         return false;
     this->protocol[MINOR] = std::atoi(token.data());
     return true;
@@ -241,7 +241,7 @@ std::string Request::getURIComp( int component ) {
     std::string result;
 
     result.clear();
-    if (component < END_URI and this->_URI[component].first) {
+    if (component < END_URI && this->_URI[component].first) {
         result = this->_URI[component].second;
     }
 
