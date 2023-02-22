@@ -63,6 +63,7 @@ std::string	Static_serv::process_request(Request &request)
 	res_http << "Content-Length: " << size_file << "\r\n";
 	res_http << "\r\n";
 	res_http << file_str;
+	//final to modify
 	return (res_http.str());
 }
 
