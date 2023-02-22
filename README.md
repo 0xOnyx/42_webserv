@@ -134,3 +134,6 @@ Webserv light in c++ 98 with epoll
 [CGI : Getting Started](http://www.mnuwer.dbasedeveloper.co.uk/dlearn/web/session01.htm)
 
 [CGI 1.1 Documentation](http://www.wijata.com/cgi/cgispec.html#4.0)
+
+https://jkorpela.fi/forms/cgic.html#simpleform
+http://sdz.tdct.org/sdz/ecrivez-votre-site-web-en-c-avec-la-cgi.html
