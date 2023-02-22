@@ -19,6 +19,7 @@ void	Socket::add_server(const std::string& servername, class Server *server)
 void	Socket::delete_buff(int socket)
 {
 	_read_buffer.erase(socket);
+	_write_buffer.erase(socket);
 }
 
 int 	Socket::read_socket(int socket)
@@ -92,7 +93,8 @@ int	Socket::write_socket(int socket)
 	to_send = size >= BUFFER_SIZE ? BUFFER_SIZE : (ssize_t)size;
 	if ((current_size = send(socket, current_write.data(), to_send, 0 )) < 0)
 		syslog(LOG_ERR, "Error with socket to write %d %m ", socket);
-	current_write.resize(size - current_size);
+	while (current_size--)
+		current_write.erase(current_write.begin());
 	if (current_write.empty())
 	{
 		syslog(LOG_INFO, "finish to send all element from %d", socket);

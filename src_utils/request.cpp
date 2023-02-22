@@ -13,15 +13,15 @@ bool is_a_number(const std::string& s) {
     return true;
 }
 
-Request::Request( std::string & buffer ) : status(200), content_length(0) {
+Request::Request( int _sockfd, std::string & buffer ) :socketfd(_sockfd), content_length(0) {
     std::string token;
 
     _body.clear();
     tokenize(buffer, token, CRLF);
     this->parseRequestLine(token);
 
-    while(tokenize(buffer, token, CRLF) && token.size()) {
-        this->parseHeader(token); }
+    while(tokenize(buffer, token, CRLF) && token.size())
+        this->parseHeader(token);
 
     this->parseURI(this->request_line[URI]);
 }
@@ -85,17 +85,15 @@ void	Request::parseRequestLine( std::string rLine ) {
         throw Request::InvalidProtocol();
 }
 
-bool	Request::parseHeader( std::string header ) {
+void	Request::parseHeader( std::string header ) {
     std::string key;
 
     if (!header.compare(0, 1, " ") or !header.compare(0, 1, "	")) {
-        this->status = 400;
-        return false;
+        throw std::runtime_error("failed to parse token");
     } else {
         tokenize(header, key, ": ");
         this->_h_index.push_back(key);
         this->_headers[key] = header;
-        return true;
     }
 }
 
@@ -258,6 +256,6 @@ size_t  Request::has_body( void ) {
     return content_length;
 }
 
-void    Request::set_body( std::string & body ) {
+void    Request::set_body( std::string body ) {
     _body = body;
 }

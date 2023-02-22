@@ -20,18 +20,15 @@ void	Server::set_error_page(std::string &error)
 
 void	Server::read_body(Request &request, std::vector<char> &rest_buff)
 {
-	std::string 					key;
 	std::vector<char>::size_type	content_len;
 	std::vector<char>::size_type	size_buffer;
-	int 							return_size;
 
 	size_buffer = rest_buff.size();
-	if (request.has_body() && !(key = request.getHeaderValue("Content-Length")).empty())
+	if ((content_len = request.has_body()))
 	{
-		content_len = std::atoi(key.c_str());
 		rest_buff.resize(content_len);
-		if ((return_size = recv(request.socketfd,
-								&rest_buff[size_buffer], content_len - size_buffer, 0)) < 0))
+		if (recv(request.socketfd,
+								&rest_buff[size_buffer], content_len - size_buffer, 0 < 0))
 		{
 			syslog(LOG_ERR, "ERROR to read body from socket %d %m", request.socketfd);
 			throw std::runtime_error("error to read body from sockt");
@@ -46,11 +43,13 @@ std::vector<char>	Server::parse_request(Request &request, std::vector<char> &res
 	std::string 									res_engine;
 	std::string										key;
 	std::map<std::string, class Engine *>::iterator	iter;
+	std::string::size_type							pos;
 
-	(void)rest_buff; //TODO : DELTE THIS LINE
-	read_body(request, rest_buff); TODO: Uncomment this line
-	key = request.request_line[URI];
-	std::cout << key;
+	read_body(request, rest_buff);
+	key = request.getURIComp(PATH);
+	if ((pos = key.find('/') != std::string::npos))
+		key = key.substr(0, pos);
+	syslog(LOG_DEBUG, "search location for the value => %s", key.c_str());
 	if ((iter = _location.find(key)) == _location.end())
 	{
 		syslog(LOG_DEBUG, "not found location for the value => %s", key.c_str());

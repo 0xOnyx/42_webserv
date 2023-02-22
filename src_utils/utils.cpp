@@ -13,8 +13,8 @@ std::string string_to_lower( std::string str ) {
     std::string result;
     size_t len = str.size();
 
-    for ( int i = 0; i < len; i++ ) {
-        result.push_back(std::tolower(str[i]));
+    for ( size_t i = 0; i < len; i++ ) {
+        result += static_cast<char>(std::tolower(str[i]));
     }
     return result;
 }
