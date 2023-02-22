@@ -13,9 +13,10 @@ bool is_a_number(const std::string& s) {
     return true;
 }
 
-Request::Request( std::string & buffer ) : status(200) {
+Request::Request( std::string & buffer ) : status(200), content_length(0) {
     std::string token;
 
+    _body.clear();
     tokenize(buffer, token, CRLF);
     this->parseRequestLine(token);
 
@@ -237,13 +238,26 @@ std::string Request::getURI( void ) {
     return result;
 }
 
-std::string Request::getURIComp( int component ) {
-    std::string result;
+std::string Request::getURIComp( int component )
+{
+	std::string result;
 
-    result.clear();
-    if (component < END_URI && this->_URI[component].first) {
-        result = this->_URI[component].second;
+	result.clear();
+	if (component < END_URI && this->_URI[component].first)
+	{
+		result = this->_URI[component].second;
+	}
+
+	return result;
+}
+
+size_t  Request::has_body( void ) {
+    if (_headers.find("Content-Length") != _headers.end()) {
+        content_length = std::atoi(_headers["Content-Length"].data());
     }
+    return content_length;
+}
 
-    return result;
+void    Request::set_body( std::string & body ) {
+    _body = body;
 }
