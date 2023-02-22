@@ -262,8 +262,10 @@ std::map<std::string, std::string>   Request::getQUERIES() {
     for (std::vector<std::string>::iterator it = list.begin(); it != list.end(); it++ ) {
         std::stringstream query(*it);
         std::string key;
+        std::string value;
         std::getline(query, key, '=');
-        result[key] = query.str();
+        std::getline(query, value);
+        result[key] = value;
     }
     return (result);
 }
