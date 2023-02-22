@@ -18,7 +18,6 @@ void	Server::set_error_page(std::string &error)
 	_error_page = error;
 }
 
-/* wait update to request class to uncomment
 void	Server::read_body(Request &request, std::vector<char> &rest_buff)
 {
 	std::string 					key;
@@ -40,7 +39,7 @@ void	Server::read_body(Request &request, std::vector<char> &rest_buff)
 		request.set_body(std::string(rest_buff.begin(), rest_buff.end()));
 	}
 }
-*/
+
 std::vector<char>	Server::parse_request(Request &request, std::vector<char> &rest_buff)
 {
 	std::vector<char>								res_http;
@@ -49,8 +48,9 @@ std::vector<char>	Server::parse_request(Request &request, std::vector<char> &res
 	std::map<std::string, class Engine *>::iterator	iter;
 
 	(void)rest_buff; //TODO : DELTE THIS LINE
-///	read_body(request, rest_buff); TODO: Uncomment this line
+	read_body(request, rest_buff); TODO: Uncomment this line
 	key = request.request_line[URI];
+	std::cout << key;
 	if ((iter = _location.find(key)) == _location.end())
 	{
 		syslog(LOG_DEBUG, "not found location for the value => %s", key.c_str());

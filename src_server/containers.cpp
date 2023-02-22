@@ -47,7 +47,7 @@ void	Containers::_add_location(class Server *current_server, std::map<std::strin
 	if (!current_server)
 		throw std::runtime_error("not set a location if server not declare");
 	if ((iterator_location = location.find("path")) == location.end() || iterator_location->second.length() <= 0)
-		throw std::runtime_error("the path is not set for the location");;
+		throw std::runtime_error("the path is not set for the location");
 	if (location.find("CGI") != location.end())
 	{
 		engine = dynamic_cast<class Engine *>(new Cgi(location));
