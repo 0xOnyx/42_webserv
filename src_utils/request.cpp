@@ -263,7 +263,7 @@ std::map<std::string, std::string>   Request::getQUERIES() {
         std::stringstream query(*it);
         std::string key;
         std::getline(query, key, '=');
-        result[key] = query;
+        result[key] = query.str();
     }
     return (result);
 }
