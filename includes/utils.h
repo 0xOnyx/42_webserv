@@ -56,5 +56,6 @@ void	handler_poll(void *data, int event, poll_t *poll);
 typedef std::pair<std::string, std::string> pair_str;
 void	set_nonblocking(int sockfd);
 size_t	get_size_file(int fd);
+std::string string_to_lower( std::string str );
 
 #endif

@@ -1,5 +1,6 @@
 #include "includes.h"
 
+
 std::string	Request::_valid_methods[] = {"GET", "POST", "DELETE"};
 
 bool is_a_number(const std::string& s) {
@@ -12,7 +13,7 @@ bool is_a_number(const std::string& s) {
     return true;
 }
 
-Request::Request( int _sockfd, std::string & buffer ) : socketfd(_sockfd), status(200) {
+Request::Request( std::string & buffer ) : status(200) {
     std::string token;
 
     tokenize(buffer, token, CRLF);
@@ -20,6 +21,8 @@ Request::Request( int _sockfd, std::string & buffer ) : socketfd(_sockfd), statu
 
     while(tokenize(buffer, token, CRLF) and token.size()) {
         this->parseHeader(token); }
+
+    this->parseURI(this->request_line[URI]);
 }
 
 Request::~Request( void ) {}
@@ -109,7 +112,7 @@ std::map<std::string, std::string> &    Request::getHeaders() {
     return this->_headers;
 }
 
-bool Request::tokenize( std::string & buffer, std::string & token, std::string delim ) {
+bool    Request::tokenize( std::string & buffer, std::string & token, std::string delim ) {
     size_t pos = buffer.find(delim);
     if ( pos != std::string::npos ) {
         token.clear();
@@ -119,4 +122,128 @@ bool Request::tokenize( std::string & buffer, std::string & token, std::string d
     } else {
         return false;
     }
+}
+
+int    Request::tokenizeURI( std::string & buffer, std::string & token, std::string array, bool trim ) {
+    size_t pos = buffer.find_first_of(array);
+    size_t delim = 0;
+    char ret = 0;
+
+    token.clear();
+    if (trim)
+        delim = 1;
+    if ( pos != std::string::npos ) {
+        ret = buffer[pos];
+        token = buffer.substr(0, pos);
+        buffer.erase(0, pos + delim);
+
+    } else {
+        token = buffer;
+        buffer.clear();
+    }
+    switch (ret) {
+        case 47:
+            return PATH;
+        case 63:
+            return QUERY;
+        case 35:
+            return FRAG;
+        default:
+            return END_URI;
+    }
+}
+
+bool    Request::parseURI( std::string & buffer ) {
+    std::string tmp = buffer;
+    std::string token;
+    int         hierarchy;
+
+    for (int i = SCHEME; i < END_URI; i++) {
+        this->_URI[i].first = false;
+    }
+
+    if (std::isalpha(tmp[0])) {
+        hierarchy = SCHEME;
+    } else if (tmp.compare(0, 2, "//") == 0) {
+        hierarchy = AUTH;
+    } else if (tmp[0] == '/') {
+        hierarchy = PATH;
+    } else {
+        return false;
+    }
+    while (hierarchy < END_URI) {
+        switch (hierarchy) {
+            case SCHEME:
+                tokenizeURI(tmp, token, ":", true);
+                token.append(":");
+                if (tmp.compare(0, 2, "//") == 0) {
+                    hierarchy = AUTH;
+                } else {
+                    hierarchy = PATH;
+                }
+                this->_URI[SCHEME].first = true;
+                this->_URI[SCHEME].second = token;
+                break;
+            case AUTH:
+                tmp.erase(0, 2);
+                hierarchy = tokenizeURI(tmp, token, "/?#", false);
+                token.insert(0, "//");
+                this->_URI[AUTH].first = true;
+                this->_URI[AUTH].second = token;
+                break;
+            case PATH:
+                hierarchy = tokenizeURI(tmp, token, "?#", false);
+                this->_URI[PATH].first = true;
+                this->_URI[PATH].second = token;
+                break;
+            case QUERY:
+                hierarchy = tokenizeURI(tmp, token, "#", false);
+                this->_URI[QUERY].first = true;
+                this->_URI[QUERY].second = token;
+                break;
+            case FRAG:
+                this->_URI[FRAG].first = true;
+                this->_URI[FRAG].second = tmp;
+                hierarchy = END_URI;
+                break;
+        }
+    }
+    if (!this->_URI[SCHEME].first) {
+        tmp = this->request_line[PROTOCOL];
+        tokenizeURI(tmp, token, "/", true);
+        token.append(":");
+        this->_URI[SCHEME].first = true;
+        this->_URI[SCHEME].second = string_to_lower(token);
+    }
+
+    if (!this->_URI[AUTH].first) {
+        token = getHeaderValue("Host");
+        if (token.size()) {
+            token.insert(0, "//");
+            this->_URI[AUTH].first = true;
+            this->_URI[AUTH].second = token;
+        }
+    }
+    return true;
+}
+
+std::string Request::getURI( void ) {
+    std::string result("");
+
+    for (int i = SCHEME; i < END_URI; i++) {
+        if (this->_URI[i].first)
+            result.append(this->_URI[i].second);
+    }
+    return result;
+}
+
+std::string Request::getURIComp( int component ) {
+    std::string result;
+
+    result.clear();
+    if (component < END_URI and this->_URI[component].first) {
+        result = this->_URI[component].second;
+    }
+
+    return result;
 }
