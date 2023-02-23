@@ -1,6 +1,7 @@
 include .env
 export
 NAME = webserv
+CGI	= ./cgi-bin/cgi
 
 COLOR_ESC			= \033
 COLOR_WHITE			= $(COLOR_ESC)[97m
@@ -19,6 +20,7 @@ PATH_ENGINE			= src_engine/
 PATH_ROUTINE		= src_routine/
 PATH_SERVER			= src_server/
 PATH_UTIL			= src_utils/
+PATH_CGI			= src_cgi/
 PATH_OBJ			= objs/
 
 HEADER				= cgi.hpp config.hpp containers.hpp data.h engine.hpp includes.h server.hpp socket.hpp static_serv.hpp utils.h syslog.hpp request.hpp
@@ -27,12 +29,14 @@ SRC_ENGINE			= cgi.cpp engine.cpp static_serv.cpp
 SRC_ROUTINE			= main.cpp
 SRC_SERVER			= containers.cpp server.cpp socket.cpp
 SRC_UTIL			= utils.cpp epoll.cpp kqueue.cpp socket_utils.cpp compare.cpp syslog.cpp handler_poll.cpp request.cpp
+SRC_CGI				= cgi.c
 
 SRC_CONFIGS			= $(addprefix $(PATH_CONFIG),$(SRC_CONFIG))
 SRC_ENGINES			= $(addprefix $(PATH_ENGINE),$(SRC_ENGINE))
 SRC_ROUTINES		= $(addprefix $(PATH_ROUTINE),$(SRC_ROUTINE))
 SRC_SERVERS			= $(addprefix $(PATH_SERVER),$(SRC_SERVER))
 SRC_UTILS			= $(addprefix $(PATH_UTIL),$(SRC_UTIL))
+SRC_CGIS			= $(addprefix $(PATH_CGI),$(SRC_CGI))
 
 SRCS 				= $(SRC_CONFIGS) $(SRC_ENGINES) $(SRC_ROUTINES) $(SRC_SERVERS) $(SRC_UTILS)
 
@@ -46,11 +50,12 @@ endif
 
 DEBUGING			= -g3 -fsanitize=address -fsanitize=undefined
 CXXFLAGS			= -Wall -Wextra -Werror -std=c++98
-
+CFLAGS				= -Wall -Wextra -Werror
 
 OPTIONS				= -I$(PATH_HEADER)
 LIBS				=
-CC					= g++
+CPP					= g++
+CC					= gcc
 RM					= rm -rf
 
 UNAME = $(shell uname -s)
@@ -67,6 +72,7 @@ endif
 
 ifeq ($(DEBUG), 1)
 	CXXFLAGS += $(DEBUGING)
+	CFLAGS += $(DEBUGING)
 endif
 
 ifdef OPTIMISATION_LEVEL
@@ -74,42 +80,49 @@ ifdef OPTIMISATION_LEVEL
 		# Nothing
 	else
 		CXXFLAGS += -O$(OPTIMISATION_LEVEL)
+		CFLAGS += -O$(OPTIMISATION_LEVEL)
 	endif
 else
 	CXXFLAGS += -Ofast
+	CFLAGS += -Ofast
 endif
 
 all			: $(NAME)
 
 $(PATH_OBJ)$(PATH_CONFIG)%.o	: $(PATH_CONFIG)%.cpp $(HEADERS)
 	@mkdir -p $(PATH_OBJ)$(PATH_CONFIG)
-	@$(CC) $(CXXFLAGS) $(OPTIONS) -o $(@) -c $(<)
+	@$(CPP) $(CXXFLAGS) $(OPTIONS) -o $(@) -c $(<)
 	@printf "$(COLOR_GREEN)[$(COLOR_WHITE)INFO$(COLOR_GREEN)] COMPILATION $(COLOR_CYAN)DEBUG => [%s] $(COLOR_BOLD)CONFIG\t\t=>\t$(COLOR_WHITE)%s$(COLOR_RESET)\n" $(DEBUG) $<
 
 $(PATH_OBJ)$(PATH_ENGINE)%.o	: $(PATH_ENGINE)%.cpp $(HEADERS)
 	@mkdir -p $(PATH_OBJ)$(PATH_ENGINE)
-	@$(CC) $(CXXFLAGS) $(OPTIONS) -o $(@) -c $(<)
+	@$(CPP) $(CXXFLAGS) $(OPTIONS) -o $(@) -c $(<)
 	@printf "$(COLOR_GREEN)[$(COLOR_WHITE)INFO$(COLOR_GREEN)] COMPILATION $(COLOR_BLUE)DEBUG => [%s] $(COLOR_BOLD)ENGINE\t\t=>\t$(COLOR_WHITE)%s$(COLOR_RESET)\n" $(DEBUG) $<
 
 $(PATH_OBJ)$(PATH_ROUTINE)%.o	: $(PATH_ROUTINE)%.cpp $(HEADERS)
 	@mkdir -p $(PATH_OBJ)$(PATH_ROUTINE)
-	@$(CC) $(CXXFLAGS) $(OPTIONS) -o $(@) -c $(<)
-	@printf "$(COLOR_GREEN)[$(COLOR_WHITE)INFO$(COLOR_GREEN)] COMPILATION $(COLOR_MAGENTA)DEBUG => [%s] $(COLOR_BOLD)ROUTINE\t=>\t$(COLOR_WHITE)%s$(COLOR_RESET)\n" $(DEBUG) $<
+	@$(CPP) $(CXXFLAGS) $(OPTIONS) -o $(@) -c $(<)
+	@printf "$(COLOR_GREEN)[$(COLOR_WHITE)INFO$(COLOR_GREEN)] COMPILATION $(COLOR_MAGENTA)DEBUG => [%s] $(COLOR_BOLD)ROUTINE\t\t=>\t$(COLOR_WHITE)%s$(COLOR_RESET)\n" $(DEBUG) $<
 
 $(PATH_OBJ)$(PATH_SERVER)%.o	: $(PATH_SERVER)%.cpp $(HEADERS)
 	@mkdir -p $(PATH_OBJ)$(PATH_SERVER)
-	@$(CC) $(CXXFLAGS) $(OPTIONS) -o $(@) -c $(<)
+	@$(CPP) $(CXXFLAGS) $(OPTIONS) -o $(@) -c $(<)
 	@printf "$(COLOR_GREEN)[$(COLOR_WHITE)INFO$(COLOR_GREEN)] COMPILATION $(COLOR_YELLOW)DEBUG => [%s] $(COLOR_BOLD)SERVER\t\t=>\t$(COLOR_WHITE)%s$(COLOR_RESET)\n" $(DEBUG) $<
 
 $(PATH_OBJ)$(PATH_UTIL)%.o		: $(PATH_UTIL)%.cpp $(HEADERS)
 	@mkdir -p $(PATH_OBJ)$(PATH_UTIL)
-	@$(CC) $(CXXFLAGS) $(OPTIONS) -o $(@) -c $(<)
+	@$(CPP) $(CXXFLAGS) $(OPTIONS) -o $(@) -c $(<)
 	@printf "$(COLOR_GREEN)[$(COLOR_WHITE)INFO$(COLOR_GREEN)] COMPILATION $(COLOR_MAGENTA)DEBUG => [%s] $(COLOR_BOLD)UTIL\t\t=>\t$(COLOR_WHITE)%s$(COLOR_RESET)\n" $(DEBUG) $<
 
+cgi: $(CGI)
 
-$(NAME)		: $(OBJS)
-	@$(CC) $(CXXFLAGS) $(OPTIONS) -o $(@) $(OBJS) $(LIBS)
-	@echo "$(COLOR_GREEN)[$(COLOR_WHITE)INFO$(COLOR_GREEN)] LINKAGE $(COLOR_BOLD)ALL OBJS FILE =>\n\t $(COLOR_WHITE)$(^:.o=.o\n\t)"
+$(CGI):
+	@printf "$(COLOR_GREEN)[$(COLOR_WHITE)INFO$(COLOR_GREEN)] COMPILATION $(COLOR_CYAN)DEBUG => [%s] $(COLOR_BOLD)CGI\t\t=>\t$(COLOR_WHITE)%s$(COLOR_RESET)\n" $(DEBUG) $@
+	@$(CC) -o $@ $(SRC_CGIS)
+
+$(NAME)		: $(OBJS) $(CGI)
+	@$(CPP) $(CXXFLAGS) $(OPTIONS) -o $(@) $(OBJS) $(LIBS)
+	@echo "$(COLOR_GREEN)[$(COLOR_WHITE)INFO$(COLOR_GREEN)] LINKAGE $(COLOR_BOLD)ALL OBJS FILE =>\n\t $(COLOR_WHITE)$(OBJS:.o=.o\n\t)"
 	@echo "$(COLOR_GREEN)[$(COLOR_WHITE)INFO$(COLOR_GREEN)] COMPILATION FINISH !$(COLOR_WHITE)$(COLOR_RESET_BOLD)"
 
 clean		:
@@ -120,6 +133,7 @@ clean		:
 
 fclean		: clean
 	@$(RM) $(NAME)
+	@$(RM) $(CGI)
 	@echo "$(COLOR_GREEN)[$(COLOR_WHITE)INFO$(COLOR_GREEN)] DELETE $(COLOR_BOLD)PROGRAMME =>\n\t $(COLOR_WHITE)$(NAME)"
 	@echo "$(COLOR_GREEN)[$(COLOR_WHITE)INFO$(COLOR_GREEN)] FCLEAN FINISH !$(COLOR_RESET)"
 

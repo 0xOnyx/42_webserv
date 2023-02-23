@@ -47,7 +47,8 @@ std::vector<char>	Server::parse_request(Request &request, std::vector<char> &res
 
 	read_body(request, rest_buff);
 	key = request.getURIComp(PATH);
-	if ((pos = key.find('/') != std::string::npos))
+	syslog(LOG_DEBUG, "uri search %s", key.c_str());
+	if ((pos = key.find('/', key.find('/') + 1)) != std::string::npos)
 		key = key.substr(0, pos);
 	syslog(LOG_DEBUG, "search location for the value => %s", key.c_str());
 	if ((iter = _location.find(key)) == _location.end())

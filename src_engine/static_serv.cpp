@@ -15,9 +15,9 @@ std::string	Static_serv::process_request(Request &request)
 	int 				fd = -1;
 	size_t 				size_file;
 
-	if (_location["methods"].find(request.request_line[METHOD]))
+	if (_location["methods"].find(request.request_line[METHOD]) == std::string::npos)
 	{
-		//create not authorized Responsse
+		//TODO: create not authorized Responsse
 		syslog(LOG_DEBUG, "error methods not allow");
 		return (std::string(""));
 	}
@@ -29,18 +29,18 @@ std::string	Static_serv::process_request(Request &request)
 	syslog(LOG_DEBUG, "search file for the value => %s", path.c_str());
 	if (stat(path.c_str(), &stat_element) != 0)
 	{
-		//create element not found
+		//TODO: create element not found
 		syslog(LOG_DEBUG, "failed to stat element");
 	}
 	if ((stat_element.st_mode & S_IFMT) != S_IFREG)
 	{
-		//create not authorized Responsse
+		//TODO: create not authorized Responsse
 		syslog(LOG_DEBUG, "error methods not allow");
 		return (std::string(""));
 	}
 	if (access(path.c_str(), R_OK) != 0 || (fd = open(path.c_str(), O_RDONLY)) < 0 || fstat(fd, &stat_element) != 0)
 	{
-		//create not authorized responsse
+		//TODO: create not authorized responsse
 		if (fd >= 0)
 			close(fd);
 		syslog(LOG_DEBUG, "error to open file");
@@ -63,7 +63,7 @@ std::string	Static_serv::process_request(Request &request)
 	res_http << "Content-Length: " << size_file << "\r\n";
 	res_http << "\r\n";
 	res_http << file_str;
-	//final to modify
+	//TODO: final to modify
 	return (res_http.str());
 }
 
