@@ -5,7 +5,6 @@
 # include <iostream>
 # include <sstream>
 # include <map>
-# include <unordered_map>
 # include <cctype>
 # include <cstdlib>
 # include <vector>
@@ -14,6 +13,11 @@
 # define CR '\r'
 # define LF '\n'
 # define CRLF "\r\n"
+
+# define CONTINUE 100
+# define OK 200
+# define BAD_REQUEST 400
+
 
 enum e_methods {
     GET,
@@ -49,7 +53,7 @@ public:
     std::string	request_line[3];
     int			protocol[2];
     int         status;
-    Components  _URI[5];
+    Components  URI_comp[5];
     std::map<std::string, std::string>	_headers;
     std::vector<std::string>	_h_index;
 
@@ -61,32 +65,25 @@ public:
     std::string getURI( void );
     std::string getURIComp( int component );
 
-    class InvalidRequestLine: public std::exception {
+    class BadRequest: public std::exception {
         virtual const char* what() const throw();
     };
 
-    class InvalidMethod: public std::exception {
-        virtual const char* what() const throw();
-    };
-
-    class InvalidURI: public std::exception {
-        virtual const char* what() const throw();
-    };
-
-    class InvalidProtocol: public std::exception {
-        virtual const char* what() const throw();
-    };
 private:
     static 	std::string	_valid_methods[];
+
+    void    handleStatusCode( void );
 
     void	parseRequestLine( std::string rLine );
     bool	parseHeader( std::string header);
     bool    parseURI( std::string & buffer );
-    bool	validMethod( );
-    bool	validProtocol( );
+
     bool    tokenize( std::string & buffer, std::string & token, std::string delim );
     int     tokenizeURI( std::string & buffer, std::string & token, std::string array, bool trim);
-    std::map<std::string, std::string>    getQUERIES();
+
+    bool	validMethod( );
+    bool	validProtocol( );
+    bool    validSCHEME( const std::string & token );
 };
 
 #endif

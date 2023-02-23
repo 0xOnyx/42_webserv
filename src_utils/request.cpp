@@ -1,9 +1,12 @@
 #include "includes.h"
 
 
+#define GENDELIMS ":/?#[]@"
+#define SUBDELIMS "!$&'()*+,;="
+
 std::string	Request::_valid_methods[] = {"GET", "POST", "DELETE"};
 
-bool is_a_number(const std::string& s) {
+bool    is_a_number(const std::string& s) {
 
     for (std::string::const_iterator it = s.begin(); it != s.end(); ++it) {
         if (!isdigit(*it)) {
@@ -13,58 +16,112 @@ bool is_a_number(const std::string& s) {
     return true;
 }
 
-Request::Request( std::string & buffer ) : status(200) {
+bool    is_unreserved_char(const char c) {
+    if (!isalnum(c) && c != '-' && c != '.' && c != '_' && c != '~') {
+        return false; }
+    return true;
+}
+
+bool    is_gen_delims(const char c) {
+    std::string genD(GENDELIMS);
+    size_t pos = genD.find(c);
+
+    if ( pos == std::string::npos) {
+        return false; }
+    return true;
+}
+
+bool    is_sub_delims(const char c) {
+    std::string subD(SUBDELIMS);
+    size_t pos = subD.find(c);
+
+    if ( pos == std::string::npos) {
+        return false; }
+    return true;
+}
+
+bool    is_reserved(const char c) {
+    if ( is_sub_delims(c) or is_gen_delims(c) )
+        return true;
+    return false;
+}
+
+Request::Request( std::string & buffer ) : status(CONTINUE) {
     std::string token;
 
-    tokenize(buffer, token, CRLF);
-    this->parseRequestLine(token);
-
-    while(tokenize(buffer, token, CRLF) && token.size()) {
-        this->parseHeader(token); }
-
-    this->parseURI(this->request_line[URI]);
+    try {
+        if (!tokenize(buffer, token, CRLF)) {
+            throw BAD_REQUEST; }
+        parseRequestLine(token);
+        while (tokenize(buffer, token, CRLF) && token.size()) {
+            if (!parseHeader(token)) {
+                throw BAD_REQUEST; }
+        }
+        parseURI(this->request_line[URI]);
+        status = OK;
+    }
+    catch (int status_code) {
+        status = status_code;
+    }
 }
 
 Request::~Request( void ) {}
 
-const char* Request::InvalidRequestLine::what() const throw( ){
-    return "Invalid Request Line";
-}
+// **************************************************************************** //
+//							    EXCEPTION									    //
+// **************************************************************************** //
 
-const char* Request::InvalidMethod::what() const throw( ){
-    return "Invalid HTTP Method";
-}
-
-const char* Request::InvalidURI::what() const throw( ){
-    return "Invalid URI";
-}
-
-const char* Request::InvalidProtocol::what() const throw( ){
-    return "Invalid Protocol";
-}
-
-bool	Request::validMethod( ) {
-    for (int i = 0; i < NUM_METHODS; i++) {
-        if (request_line[METHOD] == Request::_valid_methods[i])
-            return true;
+void    Request::handleStatusCode() {
+    switch (status) {
+        case BAD_REQUEST:
+            throw Request::BadRequest();
+        default:
+            break;
     }
-    return false;
 }
 
-bool	Request::validProtocol( void ) {
-    std::istringstream ss(this->request_line[PROTOCOL]);
-    std::string token;
-
-    if (!std::getline(ss, token, '/') && token != "HTTP")
-        return false;
-    if (!std::getline(ss, token, '.') && !is_a_number(token))
-        return false;
-    this->protocol[MAJOR] = std::atoi(token.data());
-    if (!std::getline(ss, token, '.') && !is_a_number(token))
-        return false;
-    this->protocol[MINOR] = std::atoi(token.data());
-    return true;
+const char* Request::BadRequest::what() const throw( ){
+    return "400 Bad Request";
 }
+
+// **************************************************************************** //
+//							        GETTERS									    //
+// **************************************************************************** //
+
+std::string	Request::getHeaderValue( const std::string& key ) {
+    std::map<std::string, std::string>::iterator it;
+
+    if (status != OK) {
+        handleStatusCode(); }
+    it = _headers.find(key);
+    if (it != this->_headers.end())
+        return it->second;
+    else
+        return "";
+}
+
+std::map<std::string, std::string> &    Request::getHeaders() {
+    if (status != OK) {
+        handleStatusCode(); }
+    return this->_headers;
+}
+
+std::string Request::getURIComp( int component ) {
+    std::string result("");
+
+    if (status != OK) {
+        handleStatusCode(); }
+    if (component < END_URI && this->URI_comp[component].first) {
+        result = this->URI_comp[component].second;
+    }
+
+    return result;
+}
+
+// **************************************************************************** //
+//							        PARSING									    //
+// **************************************************************************** //
+
 
 void	Request::parseRequestLine( std::string rLine ) {
     std::istringstream ss(rLine);
@@ -74,21 +131,16 @@ void	Request::parseRequestLine( std::string rLine ) {
         if (std::getline(ss, token, ' '))
             this->request_line[i] = token;
         else
-            throw Request::InvalidRequestLine();
+            throw BAD_REQUEST;
     }
-    if (std::getline (ss, token, ' '))
-        throw Request::InvalidRequestLine();
-    if (!this->validMethod())
-        throw Request::InvalidMethod();
-    if (!this->validProtocol())
-        throw Request::InvalidProtocol();
+    if (std::getline (ss, token, ' ') || !validMethod() || !validProtocol())
+        throw BAD_REQUEST;
 }
 
 bool	Request::parseHeader( std::string header ) {
     std::string key;
 
     if (!header.compare(0, 1, " ") or !header.compare(0, 1, "	")) {
-        this->status = 400;
         return false;
     } else {
         tokenize(header, key, ": ");
@@ -98,19 +150,7 @@ bool	Request::parseHeader( std::string header ) {
     }
 }
 
-std::string	Request::getHeaderValue( const std::string& key ) {
-    std::map<std::string, std::string>::iterator it;
 
-    it = _headers.find(key);
-    if (it != this->_headers.end())
-        return it->second;
-    else
-        return "";
-}
-
-std::map<std::string, std::string> &    Request::getHeaders() {
-    return this->_headers;
-}
 
 bool    Request::tokenize( std::string & buffer, std::string & token, std::string delim ) {
     size_t pos = buffer.find(delim);
@@ -159,7 +199,7 @@ bool    Request::parseURI( std::string & buffer ) {
     int         hierarchy;
 
     for (int i = SCHEME; i < END_URI; i++) {
-        this->_URI[i].first = false;
+        this->URI_comp[i].first = false;
     }
 
     if (std::isalpha(tmp[0])) {
@@ -175,97 +215,89 @@ bool    Request::parseURI( std::string & buffer ) {
         switch (hierarchy) {
             case SCHEME:
                 tokenizeURI(tmp, token, ":", true);
-                token.append(":");
                 if (tmp.compare(0, 2, "//") == 0) {
                     hierarchy = AUTH;
                 } else {
                     hierarchy = PATH;
                 }
-                this->_URI[SCHEME].first = true;
-                this->_URI[SCHEME].second = token;
+                this->URI_comp[SCHEME].first = true;
+                this->URI_comp[SCHEME].second = token;
                 break;
             case AUTH:
                 tmp.erase(0, 2);
                 hierarchy = tokenizeURI(tmp, token, "/?#", false);
                 token.insert(0, "//");
-                this->_URI[AUTH].first = true;
-                this->_URI[AUTH].second = token;
+                this->URI_comp[AUTH].first = true;
+                this->URI_comp[AUTH].second = token;
                 break;
             case PATH:
                 hierarchy = tokenizeURI(tmp, token, "?#", false);
-                this->_URI[PATH].first = true;
-                this->_URI[PATH].second = token;
+                this->URI_comp[PATH].first = true;
+                this->URI_comp[PATH].second = token;
                 break;
             case QUERY:
                 hierarchy = tokenizeURI(tmp, token, "#", false);
-                this->_URI[QUERY].first = true;
-                this->_URI[QUERY].second = token;
+                token.erase(0,1);
+                this->URI_comp[QUERY].first = true;
+                this->URI_comp[QUERY].second = token;
                 break;
             case FRAG:
-                this->_URI[FRAG].first = true;
-                this->_URI[FRAG].second = tmp;
+                this->URI_comp[FRAG].first = true;
+                this->URI_comp[FRAG].second = tmp;
                 hierarchy = END_URI;
                 break;
         }
     }
-    if (!this->_URI[SCHEME].first) {
+    if (!this->URI_comp[SCHEME].first) {
         tmp = this->request_line[PROTOCOL];
         tokenizeURI(tmp, token, "/", true);
-        token.append(":");
-        this->_URI[SCHEME].first = true;
-        this->_URI[SCHEME].second = string_to_lower(token);
+        this->URI_comp[SCHEME].first = true;
+        this->URI_comp[SCHEME].second = string_to_lower(token);
     }
 
-    if (!this->_URI[AUTH].first) {
+    if (!this->URI_comp[AUTH].first) {
         token = getHeaderValue("Host");
         if (token.size()) {
             token.insert(0, "//");
-            this->_URI[AUTH].first = true;
-            this->_URI[AUTH].second = token;
+            this->URI_comp[AUTH].first = true;
+            this->URI_comp[AUTH].second = token;
         }
     }
     return true;
 }
 
-std::string Request::getURI( void ) {
-    std::string result("");
-
-    for (int i = SCHEME; i < END_URI; i++) {
-        if (this->_URI[i].first)
-            result.append(this->_URI[i].second);
+bool	Request::validMethod( ) {
+    for (int i = 0; i < NUM_METHODS; i++) {
+        if (request_line[METHOD] == Request::_valid_methods[i])
+            return true;
     }
-    return result;
+    return false;
 }
 
-std::string Request::getURIComp( int component ) {
-    std::string result;
+bool	Request::validProtocol( void ) {
+    std::istringstream ss(this->request_line[PROTOCOL]);
+    std::string token;
 
-    result.clear();
-    if (component < END_URI && this->_URI[component].first) {
-        result = this->_URI[component].second;
-    }
-
-    return result;
+    if (!std::getline(ss, token, '/') && token != "HTTP")
+        return false;
+    if (!std::getline(ss, token, '.') && !is_a_number(token))
+        return false;
+    this->protocol[MAJOR] = std::atoi(token.data());
+    if (!std::getline(ss, token, '.') && !is_a_number(token))
+        return false;
+    this->protocol[MINOR] = std::atoi(token.data());
+    return true;
 }
 
-std::map<std::string, std::string>   Request::getQUERIES() {
-    std::string token(this->_URI[QUERY].second);
-    token.erase(0,1);
-    std::stringstream tmp(token);
-    token.clear();
-    std::map<std::string, std::string>  result;
+bool    Request::validSCHEME( const std::string & token ) {
+    size_t len = token.size();
 
-    std::vector<std::string>  list;
-    while (std::getline(tmp, token, '&')) {
-        list.push_back(token);
+    if (!isalpha(token[0]))
+        return false;
+    for (int i = 1; i < len; i++) {
+        char c = token[i];
+        if (!isalnum(c) && c != '+' && c != '-' && c != '.')
+            return false;
     }
-    for (std::vector<std::string>::iterator it = list.begin(); it != list.end(); it++ ) {
-        std::stringstream query(*it);
-        std::string key;
-        std::string value;
-        std::getline(query, key, '=');
-        std::getline(query, value);
-        result[key] = value;
-    }
-    return (result);
+    return true;
 }
