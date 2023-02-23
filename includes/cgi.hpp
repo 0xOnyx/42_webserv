@@ -9,7 +9,7 @@ public:
 	virtual std::string	process_request(Request &request);
 	virtual ~Cgi();
 private:
-	std::string exec_cgi(std::string &path);
+	std::string exec_cgi(Request &request, std::string &path);
 };
 
 #endif
