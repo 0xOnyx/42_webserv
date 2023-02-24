@@ -49,20 +49,15 @@ bool    is_reserved(const char c) {
 Request::Request( std::string & buffer ) : status(CONTINUE) {
     std::string token;
 
-    try {
-        if (!tokenize(buffer, token, CRLF)) {
-            throw BAD_REQUEST; }
-        parseRequestLine(token);
-        while (tokenize(buffer, token, CRLF) && token.size()) {
-            if (!parseHeader(token)) {
-                throw BAD_REQUEST; }
-        }
-        parseURI(this->request_line[URI]);
-        status = OK;
+    if (!tokenize(buffer, token, CRLF)) {
+        throw Request::BadRequest(); }
+    parseRequestLine(token);
+    while (tokenize(buffer, token, CRLF) && token.size()) {
+        if (!parseHeader(token)) {
+            throw Request::BadRequest(); }
     }
-    catch (int status_code) {
-        status = status_code;
-    }
+    parseURI(this->request_line[URI]);
+    status = OK;
 }
 
 Request::~Request( void ) {}
@@ -82,6 +77,26 @@ void    Request::handleStatusCode() {
 
 const char* Request::BadRequest::what() const throw( ){
     return "400 Bad Request";
+}
+
+// **************************************************************************** //
+//							        BODY									    //
+// **************************************************************************** //
+
+size_t  Request::has_body( void ) {
+    if (_headers.find("Content-Length") != _headers.end()) {
+        content_length = std::atoi(_headers["Content-Length"].data());
+    }
+    return content_length;
+}
+
+void    Request::set_body( std::string body ) {
+    _body = body;
+}
+
+std::string&    Request::get_body()
+{
+    return (_body);
 }
 
 // **************************************************************************** //
@@ -131,17 +146,20 @@ void	Request::parseRequestLine( std::string rLine ) {
         if (std::getline(ss, token, ' '))
             this->request_line[i] = token;
         else
-            throw BAD_REQUEST;
+            throw Request::BadRequest();
     }
     if (std::getline (ss, token, ' ') || !validMethod() || !validProtocol())
-        throw BAD_REQUEST;
+        throw Request::BadRequest();
 }
 
 bool	Request::parseHeader( std::string header ) {
     std::string key;
 
-    if (!header.compare(0, 1, " ") or !header.compare(0, 1, "	")) {
-        return false;
+    if (!header.compare(0, 1, " ") || !header.compare(0, 1, "	")) {
+        std::string last_key = *this->_h_index.rbegin();
+        while (!header.compare(0, 1, " ") || !header.compare(0, 1, "	")) {
+            header.erase(0, 1); }
+        this->_headers[last_key].append(header);
     } else {
         tokenize(header, key, ": ");
         this->_h_index.push_back(key);

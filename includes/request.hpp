@@ -56,6 +56,8 @@ public:
     Components  URI_comp[5];
     std::map<std::string, std::string>	_headers;
     std::vector<std::string>	_h_index;
+    size_t      content_length;
+    std::string     _body;
 
     Request( std::string & buffer );
     ~Request( void );
@@ -64,6 +66,10 @@ public:
     std::map<std::string, std::string> &getHeaders();
     std::string getURI( void );
     std::string getURIComp( int component );
+
+    size_t  has_body( void );
+    void    set_body( std::string body );
+    std::string& get_body( void );
 
     class BadRequest: public std::exception {
         virtual const char* what() const throw();
