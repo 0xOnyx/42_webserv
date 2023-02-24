@@ -7,20 +7,74 @@ Cgi::Cgi(std::map<std::string, std::string> location) : Engine(location)
 
 std::string Cgi::exec_cgi(Request &request, std::string &path)
 {
-	char 				template_tmp[] = "/tmp/webservXXXXXX";
-	int 				fd_body;
-	std::vector<char>	buff_res;
-	int 				pid;
+	char 					tmp_file_in[] = "/tmp/webservINXXXXXX";
+	char					tmp_file_out[] = "/tmp/webservOUTXXXXXX";
+	char 					client_str_addr[INET6_ADDRSTRLEN];
+	char 					server_str_addr[INET6_ADDRSTRLEN];
+	std::ostringstream		port_str_server;
+	struct sockaddr_storage	client_addr = {};
+	struct sockaddr_storage server_addr = {};
+	socklen_t 				sin_size;
+	int 					fd_body;
+	int 					fd_out;
+	std::vector<char>		buff_res;
+	int 					pid;
+	int 					status_pid;
+	struct stat				stat_out = {};
 
 //If the GET method is used, the data comes from the QUERY_STRING variable.
 //If the POST method is used, this information is sent to your program using standard input.
+	if ((fd_body = mkstemp(tmp_file_in)) < 0
+		|| (fd_out = mkstemp(tmp_file_out)) < 0)
+	{
+		close(fd_body);
+		close(fd_out);
+		syslog(LOG_ERR, "failed to create tmp file for the cgi %m");
+		return (std::string(""));
+	}
+	if (unlink(tmp_file_in) < 0 || unlink(tmp_file_out) < 0)
+	{
+		close(fd_body);
+		close(fd_out);
+		syslog(LOG_ERR, "failed unlink tmp file for the cgi %m");
+		return (std::string(""));
+	}
+	if (write(fd_body, request.get_body().c_str(), request.get_body().length()) < 0)
+	{
+		close(fd_body);
+		close(fd_out);
+		syslog(LOG_ERR, "failed to write body to tmp file for the cgi %m");
+		return (std::string(""));
+	}
 	if ((pid = fork()) == 0)
 	{
-
-
-		if ((fd_body = mkstemp(template_tmp)) < 0)
+		if (dup2(fd_body, STDIN_FILENO) < 0
+			|| dup2(fd_out, STDOUT_FILENO) < 0)
 		{
+
+			exit(0);
+		}
+		if (getpeername(request.socketfd, (struct sockaddr *)&client_addr, &sin_size) < 0
+			|| getsockname(request.socketfd, (struct sockaddr *)&client_addr, &sin_size) < 0)
+		{
+			//TODO : how to process this error ?
+			close(fd_body);
 			exit(1);
+		}
+		if (client_addr.ss_family == AF_INET)
+			inet_ntop(client_addr.ss_family, (const void *)&((struct sockaddr_in *)&client_addr)->sin_addr, client_str_addr, INET_ADDRSTRLEN);
+		else if (client_addr.ss_family == AF_INET6)
+			inet_ntop(client_addr.ss_family, (const void *)&((struct  sockaddr_in6 *)&client_addr)->sin6_addr, client_str_addr, INET6_ADDRSTRLEN);
+
+		if (server_addr.ss_family == AF_INET)
+		{
+			inet_ntop(server_addr.ss_family, (const void *)&((struct sockaddr_in *)&server_addr)->sin_addr, server_str_addr, INET_ADDRSTRLEN);
+			port_str_server << ntohs(((struct sockaddr_in *)&client_addr)->sin_port);
+		}
+		else if (server_addr.ss_family == AF_INET6)
+		{
+			inet_ntop(server_addr.ss_family, (const void *)&((struct  sockaddr_in6 *)&server_addr)->sin6_addr, server_str_addr, INET6_ADDRSTRLEN);
+			port_str_server << ntohs(((struct sockaddr_in6 *)&client_addr)->sin6_port);
 		}
 		if (clearenv() != 0
 			|| setenv("REDIRECT_STATUS", "200", 1) != 0
@@ -36,33 +90,56 @@ std::string Cgi::exec_cgi(Request &request, std::string &path)
 			|| setenv("HTTP_CONNECTION", request.getHeaderValue("Connection").c_str(), 1) != 0
 			|| setenv("HTTP_REFERER", request.getHeaderValue("Referer").c_str(), 1) != 0
 			|| setenv("HTTP_USER_AGENT", request.getHeaderValue("User-Agent").c_str(), 1) != 0
-			|| setenv("PATH_INFO", request.getURIComp(""), 1) != 0
-			|| setenv("PATH_TRANSLATED", , 1) != 0
-			|| setenv("QUERY_STRING", , 1) != 0
-			|| setenv("REMOTE_ADDR", , 1) != 0
-			|| setenv("REMOTE_HOST", , 1) != 0
-			|| setenv("REMOTE_IDENT", , 1) != 0
-			|| setenv("REMOTE_USER", , 1) != 0
+			|| setenv("PATH_INFO", request.getURIComp(PATH).c_str(), 1) != 0
+			|| setenv("PATH_TRANSLATED", path.c_str(), 1) != 0
+			|| setenv("DOCUMENT_ROOT", _location["root"].c_str(), 1) != 0
+			|| setenv("QUERY_STRING", request.getURIComp(QUERY).c_str(), 1) != 0
+			|| setenv("REMOTE_ADDR", client_str_addr, 1) != 0
+			|| setenv("REMOTE_HOST", client_str_addr, 1) != 0
+			|| setenv("REMOTE_IDENT", request.getHeaderValue("Authorization").c_str(), 1) != 0
+			|| setenv("REMOTE_USER", request.getHeaderValue("Authorization").c_str(), 1) != 0
 			|| setenv("REQUEST_URI", request.getURI().c_str(), 1) != 0
-			|| setenv("REQUEST_METHOD", , 1) != 0
-			|| setenv("SCRIPT_NAME", , 1) != 0
-			|| setenv("SERVER_NAME", , 1) != 0
-			|| setenv("SERVER_PORT", , 1) != 0
-			|| setenv("SERVER_PROTOCOL", , 1) != 0
-			|| setenv("SERVER_SOFTWARE", )), 1 != 0)
+			|| setenv("REQUEST_METHOD", request.request_line[METHOD].c_str(), 1) != 0
+			|| setenv("SCRIPT_NAME", _location["exec"].c_str(), 1) != 0
+			|| setenv("SCRIPT_FILENAME", _location["exec"].c_str(), 1) != 0
+			|| setenv("SERVER_NAME", server_str_addr, 1) != 0
+			|| setenv("SERVER_PORT", port_str_server.str().c_str(), 1) != 0
+			|| setenv("SERVER_PROTOCOL", request.request_line[PROTOCOL].c_str(), 1) != 0
+			|| setenv("SERVER_SOFTWARE", NAME, 1)), 1 != 0)
 		{
 			close(fd_body);
+			close(fd_out);
 			return (std::string(""));
 		}
 
 		_location["exec"];
 
-
 	}
-	if else (pid < 0)
+	else if (pid < 0)
 	{
 		//TODO : create request error server
+		syslog(LOG_ERR, "failed to fork cgi %m");
 		return (std::string(""));
+	}
+	if (waitpid(pid, &status_pid, 0) < 0
+		|| WIFEXITED(status_pid) != 0)
+	{
+		close(fd_body);
+		close(fd_out);
+		syslog(LOG_DEBUG, "failed to wait pid %d", pid);
+		return ("");
+	}
+	if (lseek(fd_out, 0, SEEK_SET) < 0
+		|| fstat(fd_out, &stat_out) < 0)
+	{
+
+	}
+	buff_res.resize((ssize_t)stat_out.st_size);
+	if (read(fd_out, buff_res.data() ,(ssize_t)stat_out.st_size) < 0)
+	{
+		close(fd_body);
+		close(fd_out);
+
 	}
 	return (std::string(buff_res.begin(), buff_res.end()));
 }

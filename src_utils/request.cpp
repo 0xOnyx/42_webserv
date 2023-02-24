@@ -259,3 +259,8 @@ size_t  Request::has_body( void ) {
 void    Request::set_body( std::string body ) {
     _body = body;
 }
+
+std::string    &Request::get_body()
+{
+    return (_body);
+}

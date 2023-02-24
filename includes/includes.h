@@ -1,6 +1,6 @@
 #ifndef INCLUDES_H
 # define INCLUDES_H
-# define NAME "WEBSERVER"
+# define NAME "WEBSERVER/1.0"
 # define DEFAULT_CONFIG "./conf/default.conf"
 # define DEFAULT_ERROR "./www/errorPages.html"
 

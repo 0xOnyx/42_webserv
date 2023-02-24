@@ -55,6 +55,7 @@ public:
     std::map<std::string, std::string> &getHeaders();
     std::string getURI( void );
     std::string getURIComp( int component );
+	std::string &get_body();
 
     class InvalidRequestLine: public std::exception {
         virtual const char* what() const throw();

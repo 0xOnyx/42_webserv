@@ -23,5 +23,6 @@
 # include <arpa/inet.h>
 # include <sys/stat.h>
 # include <sys/mman.h>
+# include <sys/wait.h>
 
 #endif
