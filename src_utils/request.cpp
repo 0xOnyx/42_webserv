@@ -13,15 +13,14 @@ bool is_a_number(const std::string& s) {
     return true;
 }
 
-Request::Request( int _sockfd, std::string & buffer ) :socketfd(_sockfd), content_length(0) {
+Request::Request( std::string & buffer ) : status(200) {
     std::string token;
 
-    _body.clear();
     tokenize(buffer, token, CRLF);
     this->parseRequestLine(token);
 
-    while(tokenize(buffer, token, CRLF) && token.size())
-        this->parseHeader(token);
+    while(tokenize(buffer, token, CRLF) and token.size()) {
+        this->parseHeader(token); }
 
     this->parseURI(this->request_line[URI]);
 }
@@ -56,12 +55,12 @@ bool	Request::validProtocol( void ) {
     std::istringstream ss(this->request_line[PROTOCOL]);
     std::string token;
 
-    if (!std::getline(ss, token, '/') && token != "HTTP")
+    if (!std::getline(ss, token, '/') and token != "HTTP")
         return false;
-    if (!std::getline(ss, token, '.') && !is_a_number(token))
+    if (!std::getline(ss, token, '.') and !is_a_number(token))
         return false;
     this->protocol[MAJOR] = std::atoi(token.data());
-    if (!std::getline(ss, token, '.') && !is_a_number(token))
+    if (!std::getline(ss, token, '.') and !is_a_number(token))
         return false;
     this->protocol[MINOR] = std::atoi(token.data());
     return true;
@@ -85,15 +84,17 @@ void	Request::parseRequestLine( std::string rLine ) {
         throw Request::InvalidProtocol();
 }
 
-void	Request::parseHeader( std::string header ) {
+bool	Request::parseHeader( std::string header ) {
     std::string key;
 
     if (!header.compare(0, 1, " ") or !header.compare(0, 1, "	")) {
-        throw std::runtime_error("failed to parse token");
+        this->status = 400;
+        return false;
     } else {
         tokenize(header, key, ": ");
         this->_h_index.push_back(key);
         this->_headers[key] = header;
+        return true;
     }
 }
 
@@ -236,31 +237,13 @@ std::string Request::getURI( void ) {
     return result;
 }
 
-std::string Request::getURIComp( int component )
-{
-	std::string result;
+std::string Request::getURIComp( int component ) {
+    std::string result;
 
-	result.clear();
-	if (component < END_URI && this->_URI[component].first)
-	{
-		result = this->_URI[component].second;
-	}
-
-	return result;
-}
-
-size_t  Request::has_body( void ) {
-    if (_headers.find("Content-Length") != _headers.end()) {
-        content_length = std::atoi(_headers["Content-Length"].data());
+    result.clear();
+    if (component < END_URI and this->_URI[component].first) {
+        result = this->_URI[component].second;
     }
-    return content_length;
-}
 
-void    Request::set_body( std::string body ) {
-    _body = body;
-}
-
-std::string    &Request::get_body()
-{
-    return (_body);
+    return result;
 }
