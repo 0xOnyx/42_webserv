@@ -13,7 +13,8 @@ bool is_a_number(const std::string& s) {
     return true;
 }
 
-Request::Request( std::string & buffer ) : status(200) {
+Request::Request( int _sockfd, std::string & buffer ) : socketfd(_sockfd)
+{
     std::string token;
 
     tokenize(buffer, token, CRLF);
@@ -25,7 +26,7 @@ Request::Request( std::string & buffer ) : status(200) {
     this->parseURI(this->request_line[URI]);
 }
 
-Request::~Request( void ) {}
+Request::~Request() {}
 
 const char* Request::InvalidRequestLine::what() const throw( ){
     return "Invalid Request Line";
@@ -55,12 +56,12 @@ bool	Request::validProtocol( void ) {
     std::istringstream ss(this->request_line[PROTOCOL]);
     std::string token;
 
-    if (!std::getline(ss, token, '/') and token != "HTTP")
+    if (!std::getline(ss, token, '/') && token != "HTTP")
         return false;
-    if (!std::getline(ss, token, '.') and !is_a_number(token))
+    if (!std::getline(ss, token, '.') && !is_a_number(token))
         return false;
     this->protocol[MAJOR] = std::atoi(token.data());
-    if (!std::getline(ss, token, '.') and !is_a_number(token))
+    if (!std::getline(ss, token, '.') && !is_a_number(token))
         return false;
     this->protocol[MINOR] = std::atoi(token.data());
     return true;
@@ -87,9 +88,8 @@ void	Request::parseRequestLine( std::string rLine ) {
 bool	Request::parseHeader( std::string header ) {
     std::string key;
 
-    if (!header.compare(0, 1, " ") or !header.compare(0, 1, "	")) {
-        this->status = 400;
-        return false;
+    if (!header.compare(0, 1, " ") || !header.compare(0, 1, "	")) {
+        throw std::runtime_error("bad request");
     } else {
         tokenize(header, key, ": ");
         this->_h_index.push_back(key);
@@ -246,4 +246,22 @@ std::string Request::getURIComp( int component ) {
     }
 
     return result;
+}
+
+size_t  Request::has_body( void ) {
+	if (_headers.find("Content-Length") != _headers.end()) {
+		content_length = std::atoi(_headers["Content-Length"].data());
+	}
+	return content_length;
+}
+
+
+void	Request::set_body(std::string body)
+{
+	_body = body;
+}
+
+std::string &Request::get_body(void)
+{
+	return (_body);
 }

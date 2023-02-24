@@ -172,7 +172,7 @@ std::string Cgi::process_request(Request &request)
 		cgi_str =  this->exec_cgi(request, path);
 
 		//TODO: PROCESS request for cgi;
-		res_http <<
+		//res_http <<
 
 	}
 	else

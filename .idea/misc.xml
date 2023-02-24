@@ -1,9 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="CidrRootsConfiguration">
-    <libraryRoots>
+    <sourceRoots>
       <file path="$PROJECT_DIR$/includes" />
-    </libraryRoots>
+      <file path="$PROJECT_DIR$/src_cgi" />
+      <file path="$PROJECT_DIR$/src_config" />
+      <file path="$PROJECT_DIR$/src_engine" />
+      <file path="$PROJECT_DIR$/src_routine" />
+      <file path="$PROJECT_DIR$/src_server" />
+      <file path="$PROJECT_DIR$/src_utils" />
+    </sourceRoots>
   </component>
   <component name="ExternalStorageConfigurationManager" enabled="true" />
   <component name="MakefileSettings">

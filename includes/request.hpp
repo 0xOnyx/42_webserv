@@ -2,17 +2,7 @@
 # define REQUEST_HPP
 
 # include "data.h"
-# include <iostream>
-# include <sstream>
-# include <map>
-# include <unordered_map>
-# include <cctype>
-# include <cstdlib>
-# include <vector>
-# include <utility>
 
-# define CR '\r'
-# define LF '\n'
 # define CRLF "\r\n"
 
 enum e_methods {
@@ -46,20 +36,26 @@ typedef std::pair<bool,std::string> Components;
 
 class Request {
 public:
-    std::string	request_line[3];
-    int			protocol[2];
-    int         status;
-    Components  _URI[5];
-    std::map<std::string, std::string>	_headers;
-    std::vector<std::string>	_h_index;
+	size_t      						content_length;
+	std::string 						_body;
+	std::string							request_line[3];
+	int									protocol[2];
+	int         						socketfd;
+	Components  						_URI[5];
+	std::map<std::string, std::string>	_headers;
+    std::vector<std::string>			_h_index;
+	size_t  has_body( void );
 
-    Request( std::string & buffer );
+    Request( int _sockfd, std::string & buffer );
     ~Request( void );
 
     std::string	getHeaderValue( const std::string& key );
     std::map<std::string, std::string> &getHeaders();
     std::string getURI( void );
     std::string getURIComp( int component );
+
+	std::string	&get_body(void);
+	void		set_body(std::string body);
 
     class InvalidRequestLine: public std::exception {
         virtual const char* what() const throw();
@@ -79,7 +75,7 @@ public:
 private:
     static 	std::string	_valid_methods[];
 
-    void	parseRequestLine( std::string rLine );
+	void	parseRequestLine( std::string rLine );
     bool	parseHeader( std::string header);
     bool    parseURI( std::string & buffer );
     bool	validMethod( );
