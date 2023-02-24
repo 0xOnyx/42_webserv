@@ -152,7 +152,6 @@ std::string Cgi::process_request(Request &request)
 {
 	std::vector<char>	file_content;
 	std::string 		file_str;
-	std::ostringstream	res_http;
 	std::string 		path;
 
 	if (_location["methods"].find(request.request_line[METHOD]) == std::string::npos)
@@ -168,20 +167,32 @@ std::string Cgi::process_request(Request &request)
 		path += request.getURIComp(PATH);
 	if (path.find(_location["CGI"]) != std::string::npos)
 	{
-		std::string 	cgi_str;
-		cgi_str =  this->exec_cgi(request, path);
+		try{
+			std::string 	cgi_str;
 
-		//TODO: PROCESS request for cgi;
-		//res_http <<
+			cgi_str =  this->exec_cgi(request, path);
+			CGIParser	cgiparser(cgi_str);
+			//TODO: PROCESS request for cgi;
+			const std::string &body = cgiparser.getBody();
+			const std::map<std::string, std::string>	&header = cgiparser.getHeaders();
 
+			(void)body;
+			(void)header;
+			//TODO: create request response
+			return (std::string(""));
+		}
+		catch(std::exception &e)
+		{
+			//todo : Process request error for 500;
+			return (std::string(""));
+		}
 	}
 	else
 	{
 		syslog(LOG_DEBUG, "process by static_server");
 		Static_serv static_serv(_location);
-		res_http << static_serv.process_request(request);
+		return (static_serv.process_request(request));
 	}
-	return (res_http.str());
 }
 
 Cgi::~Cgi()

@@ -20,7 +20,7 @@ Request::Request( int _sockfd, std::string & buffer ) : socketfd(_sockfd)
     tokenize(buffer, token, CRLF);
     this->parseRequestLine(token);
 
-    while(tokenize(buffer, token, CRLF) and token.size()) {
+    while(tokenize(buffer, token, CRLF) && !token.empty()) {
         this->parseHeader(token); }
 
     this->parseURI(this->request_line[URI]);
@@ -228,7 +228,7 @@ bool    Request::parseURI( std::string & buffer ) {
 }
 
 std::string Request::getURI( void ) {
-    std::string result("");
+    std::string result;
 
     for (int i = SCHEME; i < END_URI; i++) {
         if (this->_URI[i].first)
@@ -240,7 +240,6 @@ std::string Request::getURI( void ) {
 std::string Request::getURIComp( int component ) {
     std::string result;
 
-    result.clear();
     if (component < END_URI and this->_URI[component].first) {
         result = this->_URI[component].second;
     }

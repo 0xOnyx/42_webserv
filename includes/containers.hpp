@@ -26,6 +26,7 @@ private:
 	void	_add_server(ServerConfig &config, class Server *server);
 	void	_parse_config(char *file);
 	typedef std::map<pair_str, class Socket *>	_binding_type;
+	std::vector<struct s_event *>	_events;
 	_binding_type	_binding;
 };
 

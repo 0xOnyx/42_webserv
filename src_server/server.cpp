@@ -64,5 +64,8 @@ std::vector<char>	Server::parse_request(Request &request, std::vector<char> &res
 
 Server::~Server()
 {
+	std::map<std::string, class Engine *>::iterator 	iter;
 
+	for(iter = _location.begin(); iter != _location.end(); iter++)
+		delete iter->second;
 }

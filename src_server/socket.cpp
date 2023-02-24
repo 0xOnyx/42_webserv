@@ -156,5 +156,10 @@ void	Socket::init()
 
 Socket::~Socket()
 {
+	std::map<std::string, class Server *>::iterator iter;
+
+	for (iter = _server.begin(); iter != _server.end(); iter++)
+		delete iter->second;
 	close(_socket_fd);
+
 }

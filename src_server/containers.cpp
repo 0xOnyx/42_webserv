@@ -1,6 +1,6 @@
 #include "containers.hpp"
 
-Containers::Containers() :_poll(), _binding(std::map<pair_str, class Socket *>())
+Containers::Containers() :_poll(), _events(std::vector<struct s_event *>()), _binding(std::map<pair_str, class Socket *>())
 {
 	syslog(LOG_DEBUG, "[INFO]\tNew Containers create");
 	_poll.cb = handler_poll;
@@ -153,8 +153,8 @@ void	Containers::_parse_config(char *file)
 
 void	Containers::init_socket()
 {
-	_binding_type::iterator	iterator;
-	struct s_event			*data;
+	_binding_type::iterator			iterator;
+	struct s_event					*data;
 
 	for (iterator = _binding.begin(); iterator != _binding.end(); iterator++)
 	{
@@ -163,6 +163,7 @@ void	Containers::init_socket()
 		data = new struct s_event;
 		data->fd = iterator->second->get_socketfd();
 		data->socket = iterator->second;
+		_events.push_back(data);
 #if defined __linux__
 		if (poll_add(&_poll, iterator->second->get_socketfd(), EPOLLIN | EPOLLOUT | EPOLLET, data) != 0)
 			throw std::runtime_error("error to add to poll file descriptor");
@@ -197,6 +198,13 @@ void	Containers::_add_server(ServerConfig &config, class Server *server)
 
 Containers::~Containers()
 {
+	std::vector<struct s_event *>::iterator	iter_event;
+	_binding_type::iterator 				iter_bind;
+
 	if (close(_poll.fd) != 0)
 		syslog(LOG_ERR, "failed to close poll %m");
+	for (iter_event = _events.begin(); iter_event != _events.end(); iter_event++)
+		delete *iter_event;
+	for (iter_bind = _binding.begin(); iter_bind != _binding.end(); iter_bind++)
+		delete iter_bind->second;
 }
