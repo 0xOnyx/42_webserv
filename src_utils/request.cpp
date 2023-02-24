@@ -46,9 +46,10 @@ bool    is_reserved(const char c) {
     return false;
 }
 
-Request::Request( std::string & buffer ) : status(CONTINUE) {
+Request::Request( int _sockfd, std::string & buffer ) : socketfd(_sockfd), status(CONTINUE) {
     std::string token;
 
+    _body.clear();
     if (!tokenize(buffer, token, CRLF)) {
         throw Request::BadRequest(); }
     parseRequestLine(token);
