@@ -15,8 +15,8 @@ std::string Cgi::exec_cgi(Request &request, std::string &path)
 	struct sockaddr_storage	client_addr = {};
 	struct sockaddr_storage server_addr = {};
 	socklen_t 				sin_size;
-	int 					fd_body;
-	int 					fd_out;
+	int 					fd_body = -1;
+	int 					fd_out = -1;
 	std::vector<char>		buff_res;
 	int 					pid;
 	int 					status_pid;
@@ -27,8 +27,8 @@ std::string Cgi::exec_cgi(Request &request, std::string &path)
 	if ((fd_body = mkstemp(tmp_file_in)) < 0
 		|| (fd_out = mkstemp(tmp_file_out)) < 0)
 	{
-		close(fd_body);
-		close(fd_out);
+		fd_body > 0 ? close(fd_body) : 0;
+		fd_out > 0 ? close(fd_out): 0;
 		syslog(LOG_ERR, "failed to create tmp file for the cgi %m");
 		return (std::string(""));
 	}
@@ -51,13 +51,14 @@ std::string Cgi::exec_cgi(Request &request, std::string &path)
 		if (dup2(fd_body, STDIN_FILENO) < 0
 			|| dup2(fd_out, STDOUT_FILENO) < 0)
 		{
-
-			exit(0);
+			close(fd_body);
+			close(fd_out);
+			exit(1);
 		}
 		if (getpeername(request.socketfd, (struct sockaddr *)&client_addr, &sin_size) < 0
 			|| getsockname(request.socketfd, (struct sockaddr *)&client_addr, &sin_size) < 0)
 		{
-			//TODO : how to process this error ?
+			close(fd_out);
 			close(fd_body);
 			exit(1);
 		}
@@ -105,15 +106,17 @@ std::string Cgi::exec_cgi(Request &request, std::string &path)
 			|| setenv("SERVER_NAME", server_str_addr, 1) != 0
 			|| setenv("SERVER_PORT", port_str_server.str().c_str(), 1) != 0
 			|| setenv("SERVER_PROTOCOL", request.request_line[PROTOCOL].c_str(), 1) != 0
-			|| setenv("SERVER_SOFTWARE", NAME, 1)), 1 != 0)
+			|| setenv("SERVER_SOFTWARE", NAME, 1) != 0)
 		{
 			close(fd_body);
 			close(fd_out);
-			return (std::string(""));
+			exit(1);
 		}
-
-		_location["exec"];
-
+		if (execl(_location["exec"].c_str(), _location["exec"].c_str(), NULL) != 0)
+		{
+			syslog(LOG_ERR, "failed to fork the cgi %m");
+			exit(1);
+		}
 	}
 	else if (pid < 0)
 	{
@@ -122,7 +125,8 @@ std::string Cgi::exec_cgi(Request &request, std::string &path)
 		return (std::string(""));
 	}
 	if (waitpid(pid, &status_pid, 0) < 0
-		|| WIFEXITED(status_pid) != 0)
+		|| WIFEXITED(status_pid) != 0
+		|| WEXITSTATUS(status_pid) != 0)
 	{
 		close(fd_body);
 		close(fd_out);
@@ -139,7 +143,7 @@ std::string Cgi::exec_cgi(Request &request, std::string &path)
 	{
 		close(fd_body);
 		close(fd_out);
-
+		return (std::string(""));
 	}
 	return (std::string(buff_res.begin(), buff_res.end()));
 }
@@ -164,7 +168,12 @@ std::string Cgi::process_request(Request &request)
 		path += request.getURIComp(PATH);
 	if (path.find(_location["CGI"]) != std::string::npos)
 	{
-		res_http << this->exec_cgi(request, path);
+		std::string 	cgi_str;
+		cgi_str =  this->exec_cgi(request, path);
+
+		//TODO: PROCESS request for cgi;
+		res_http <<
+
 	}
 	else
 	{
