@@ -2,10 +2,22 @@
 # define REQUEST_HPP
 
 # include "data.h"
+# include <iostream>
+# include <sstream>
+# include <map>
+# include <cctype>
+# include <cstdlib>
+# include <vector>
+# include <utility>
 
 # define CR '\r'
 # define LF '\n'
 # define CRLF "\r\n"
+
+# define CONTINUE 100
+# define OK 200
+# define BAD_REQUEST 400
+
 
 enum e_methods {
     GET,
@@ -41,12 +53,12 @@ public:
 	int			socketfd;
     std::string	request_line[3];
     int			protocol[2];
-    Components  _URI[5];
-    std::string _body;
-    size_t      content_length;
-
+    int         status;
+    Components  URI_comp[5];
     std::map<std::string, std::string>	_headers;
     std::vector<std::string>	_h_index;
+    size_t      content_length;
+    std::string     _body;
 
     Request( int _sockfd, std::string & buffer );
     ~Request( void );
@@ -55,35 +67,30 @@ public:
     std::map<std::string, std::string> &getHeaders();
     std::string getURI( void );
     std::string getURIComp( int component );
-	std::string &get_body();
 
-    class InvalidRequestLine: public std::exception {
+    size_t  has_body( void );
+    void    set_body( std::string body );
+    std::string& get_body( void );
+
+    class BadRequest: public std::exception {
         virtual const char* what() const throw();
     };
 
-    class InvalidMethod: public std::exception {
-        virtual const char* what() const throw();
-    };
-
-    class InvalidURI: public std::exception {
-        virtual const char* what() const throw();
-    };
-
-    class InvalidProtocol: public std::exception {
-        virtual const char* what() const throw();
-    };
-	size_t  has_body( void );
-	void    set_body( std::string body );
 private:
     static 	std::string	_valid_methods[];
 
+    void    handleStatusCode( void );
+
     void	parseRequestLine( std::string rLine );
-    void	parseHeader( std::string header);
+    bool	parseHeader( std::string header);
     bool    parseURI( std::string & buffer );
-    bool	validMethod( );
-    bool	validProtocol( );
+
     bool    tokenize( std::string & buffer, std::string & token, std::string delim );
     int     tokenizeURI( std::string & buffer, std::string & token, std::string array, bool trim);
+
+    bool	validMethod( );
+    bool	validProtocol( );
+    bool    validSCHEME( const std::string & token );
 };
 
 #endif
