@@ -3,12 +3,19 @@
 
 # include "data.h"
 
+# define CR '\r'
+# define LF '\n'
 # define CRLF "\r\n"
 
 enum e_methods {
+    OPTIONS,
     GET,
+    HEAD,
     POST,
+    PUT,
     DELETE,
+    TRACE,
+    CONNECT,
     NUM_METHODS
 };
 

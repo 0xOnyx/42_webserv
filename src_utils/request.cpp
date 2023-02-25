@@ -1,7 +1,10 @@
 #include "includes.h"
 
 
-std::string	Request::_valid_methods[] = {"GET", "POST", "DELETE"};
+#define GENDELIMS ":/?#[]@"
+#define SUBDELIMS "!$&'()*+,;="
+
+std::string	Request::_valid_methods[] = { "OPTIONS", "GET", "HEAD", "POST", "PUT", "DELETE", "TRACE", "CONNECT"};
 
 bool is_a_number(const std::string& s) {
 
@@ -15,15 +18,23 @@ bool is_a_number(const std::string& s) {
 
 Request::Request( int _sockfd, std::string & buffer ) : socketfd(_sockfd)
 {
-    std::string token;
+	std::string token;
 
-    tokenize(buffer, token, CRLF);
-    this->parseRequestLine(token);
+	tokenize(buffer, token, CRLF);
+	this->parseRequestLine(token);
 
-    while(tokenize(buffer, token, CRLF) && !token.empty()) {
-        this->parseHeader(token); }
+	while (tokenize(buffer, token, CRLF) && !token.empty())
+	{
+		this->parseHeader(token);
+	}
 
-    this->parseURI(this->request_line[URI]);
+	this->parseURI(this->request_line[URI]);
+}
+
+bool    is_unreserved_char(const char c) {
+    if (!isalnum(c) && c != '-' && c != '.' && c != '_' && c != '~') {
+        return false; }
+    return true;
 }
 
 Request::~Request() {}
@@ -89,7 +100,10 @@ bool	Request::parseHeader( std::string header ) {
     std::string key;
 
     if (!header.compare(0, 1, " ") || !header.compare(0, 1, "	")) {
-        throw std::runtime_error("bad request");
+        std::string last_key = *this->_h_index.rbegin();
+        while (!header.compare(0, 1, " ") || !header.compare(0, 1, "	")) {
+            header.erase(0, 1); }
+        this->_headers[last_key].append(header);
     } else {
         tokenize(header, key, ": ");
         this->_h_index.push_back(key);
