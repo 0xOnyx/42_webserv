@@ -4,7 +4,7 @@
 #define GENDELIMS ":/?#[]@"
 #define SUBDELIMS "!$&'()*+,;="
 
-std::string	Request::_valid_methods[] = {"GET", "POST", "DELETE"};
+std::string	Request::_valid_methods[] = { "OPTIONS", "GET", "HEAD", "POST", "PUT", "DELETE", "TRACE", "CONNECT"};
 
 bool    is_a_number(const std::string& s) {
 

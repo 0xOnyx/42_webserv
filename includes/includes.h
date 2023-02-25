@@ -9,6 +9,7 @@ extern volatile bool is_running;
 # include "data.h"
 # include "utils.h"
 # include "request.hpp"
+# include "response.hpp"
 # include "engine.hpp"
 # include "containers.hpp"
 # include "config.hpp"

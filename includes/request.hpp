@@ -14,15 +14,17 @@
 # define LF '\n'
 # define CRLF "\r\n"
 
-# define CONTINUE 100
-# define OK 200
-# define BAD_REQUEST 400
 
 
 enum e_methods {
+    OPTIONS,
     GET,
+    HEAD,
     POST,
+    PUT,
     DELETE,
+    TRACE,
+    CONNECT,
     NUM_METHODS
 };
 
