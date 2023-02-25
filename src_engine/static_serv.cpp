@@ -9,6 +9,7 @@ std::string	Static_serv::process_request(Request &request)
 {
 	struct stat			stat_element = {};
 	std::vector<char>	file_content;
+	std::string 		file_type;
 	std::string 		file_str;
 	std::ostringstream	res_http;
 	std::string 		path;
@@ -56,6 +57,7 @@ std::string	Static_serv::process_request(Request &request)
 		return (std::string(""));
 	}
 	file_str = std::string(file_content.begin(), file_content.end());
+	file_type = get_type_file(path);
 	//TODO: MODIFY TO REAL REQUEST
 	syslog(LOG_DEBUG, "content of the file %s", file_str.c_str());
 	res_http << "HTTP/1.1 200 OK\r\n";
@@ -65,6 +67,11 @@ std::string	Static_serv::process_request(Request &request)
 	res_http << file_str;
 	//TODO: final to modify
 	return (res_http.str());
+}
+
+std::string	Static_serv::get_type_file(std::string &path)
+{
+
 }
 
 Static_serv::~Static_serv()

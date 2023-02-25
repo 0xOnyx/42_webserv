@@ -104,6 +104,7 @@ bool	Request::parseHeader( std::string header ) {
         while (!header.compare(0, 1, " ") || !header.compare(0, 1, "	")) {
             header.erase(0, 1); }
         this->_headers[last_key].append(header);
+		return true;
     } else {
         tokenize(header, key, ": ");
         this->_h_index.push_back(key);

@@ -1,5 +1,5 @@
 #ifndef RESPONSE_HPP
-#define RESPONSE_HPP
+# define RESPONSE_HPP
 
 # include "includes.h"
 
@@ -40,7 +40,7 @@ private:
     const std::string getGeneralHeader( void );
     const std::string getResponseHeader( void );
     const std::string getEntityHeader( void );
-    const std::string setDate( void );
+    std::string setDate( void );
 public:
     Response( int status, size_t b_len, std::string b_type, std::string body);
     Response( int status );

@@ -77,8 +77,11 @@ std::string Cgi::exec_cgi(Request &request, std::string &path)
 			inet_ntop(server_addr.ss_family, (const void *)&((struct  sockaddr_in6 *)&server_addr)->sin6_addr, server_str_addr, INET6_ADDRSTRLEN);
 			port_str_server << ntohs(((struct sockaddr_in6 *)&client_addr)->sin6_port);
 		}
-		if (clearenv() != 0
-			|| setenv("REDIRECT_STATUS", "200", 1) != 0
+		if (
+#if defined __linux__
+				clearenv() != 0 ||
+#endif
+			   setenv("REDIRECT_STATUS", "200", 1) != 0
 			|| setenv("AUTH_TYPE", request.getHeaderValue("Authorization").c_str(), 1) != 0
 			|| setenv("CONTENT_LENGTH", request.getHeaderValue("Content-Length").c_str(), 1) != 0
 			|| setenv("CONTENT_TYPE", request.getHeaderValue("Content-type").c_str(), 1) != 0

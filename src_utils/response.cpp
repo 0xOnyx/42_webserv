@@ -1,4 +1,4 @@
-#include "./response.hpp"
+#include "response.hpp"
 
 std::map<int, std::string>  Response::_status_codes;
 bool                        Response::_initialized = {false};
@@ -41,14 +41,14 @@ Response::Response( int status ) : _status(status) {
 
 Response::~Response() {}
 
-const std::string    Response::setDate( void ) {
-    std::ostringstream date;
+std::string    Response::setDate() {
+	char 	*res;
+    time_t 	now;
 
-    std::time_t now = std::time(nullptr);
-    std::tm tm = *std::gmtime(&now);
-
-    date << std::put_time(&tm, "%a, %d %b %Y %T %Z");
-    return date.str();
+	now = time(NULL);
+	if ((res = ctime(&now)))
+		return (std::string(""));
+    return (std::string(res));
 }
 
 const std::string  Response::getGeneralHeader( void ) {

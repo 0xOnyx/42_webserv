@@ -9,7 +9,7 @@ public:
 	std::string	process_request(Request &request);
 	~Static_serv();
 private:
-
+	std::string	get_type_file(std::string &path);
 };
 
 #endif
