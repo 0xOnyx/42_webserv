@@ -18,6 +18,7 @@
 
 # include <netdb.h>
 
+# include <dirent.h>
 # include <time.h>
 # include <signal.h>
 # include <sstream>
@@ -30,10 +31,10 @@
 # include <string.h>
 # include <syslog.h>
 # include <sys/mman.h>
+
 # include <sys/stat.h>
 
 # include <sys/wait.h>
-
 # include <unistd.h>
 
 # include <vector>

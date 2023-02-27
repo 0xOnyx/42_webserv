@@ -130,7 +130,7 @@ void	Containers::_parse_config(char *file)
 			ss >> location["path"];
 			syslog(LOG_DEBUG, "new location => %s", location["path"].c_str());
 		}
-		else if (keyword == "index" || keyword == "root" || keyword == "CGI" || keyword == "exec")
+		else if (keyword == "index" || keyword == "root" || keyword == "CGI" || keyword == "exec" || keyword == "autoindex")
 		{
 			ss >> location[keyword];
 			location[keyword].erase(location[keyword].find(';'), 1);

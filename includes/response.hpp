@@ -37,14 +37,14 @@ private:
     static void initStatusCode( void );
 
     const std::string getStatusLine( void );
-    const std::string getGeneralHeader( void );
-    const std::string getResponseHeader( void );
+    std::string getGeneralHeader( void );
+    std::string getResponseHeader( void );
     const std::string getEntityHeader( void );
     std::string setDate( void );
 public:
-    Response( int status, size_t b_len, std::string b_type, std::string body);
-    Response( int status );
-    ~Response( void );
+    Response(int status, size_t b_len, std::string b_type, std::string body);
+    Response(int status );
+    ~Response(void );
 
     const std::string&  getResponse( void );
 };

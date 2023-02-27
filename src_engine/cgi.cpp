@@ -181,7 +181,7 @@ std::string Cgi::process_request(Request &request)
 
 			(void)body;
 			(void)header;
-			//TODO: create request response
+			//TODO: create request Response
 			return (std::string(""));
 		}
 		catch(std::exception &e)

@@ -4,7 +4,7 @@
 std::map<int, std::string>  Response::_status_codes;
 bool                        Response::_initialized = {false};
 
-void Response::initStatusCode( void ) {
+void Response::initStatusCode(void ) {
     _status_codes[CONTINUE] = "Continue";
     _status_codes[OK] = "OK";
     _status_codes[CREATED] = "Created";
@@ -24,7 +24,7 @@ void Response::initStatusCode( void ) {
     _initialized = true;
 }
 
-Response::Response( int status, size_t b_len, std::string b_type, std::string body) : _status(status), _len(b_len), _type(b_type), _body(body) {
+Response::Response(int status, size_t b_len, std::string b_type, std::string body) : _status(status), _len(b_len), _type(b_type), _body(body) {
     if (!_initialized)
         initStatusCode();
     std::ostringstream ss;
@@ -32,7 +32,7 @@ Response::Response( int status, size_t b_len, std::string b_type, std::string bo
     _response = ss.str();
 }
 
-Response::Response( int status ) : _status(status) {
+Response::Response(int status ) : _status(status) {
     if (!_initialized)
         initStatusCode();
     std::ostringstream ss;
@@ -52,7 +52,7 @@ std::string    Response::setDate() {
     return (std::string(res));
 }
 
-const std::string  Response::getGeneralHeader( void ) {
+std::string  Response::getGeneralHeader( ) {
     std::ostringstream ss;
 
     ss << "Date: " << setDate() << CRLF;
@@ -61,7 +61,7 @@ const std::string  Response::getGeneralHeader( void ) {
 }
 
 /* There are a few header fields which have general applicability for
-   both request and response messages, but which do not apply to the
+   both request and Response messages, but which do not apply to the
    entity being transferred. These header fields apply only to the
    message being transmitted.
 
@@ -84,7 +84,7 @@ const std::string  Response::getGeneralHeader( void ) {
  *
  */
 
-const std::string  Response::getResponseHeader( void ) {
+std::string  Response::getResponseHeader( ) {
     std::ostringstream ss;
     ss << "Accept-Ranges: none" << CRLF; // À vérifier
     if (_status == 201 || (_status / 100) == 3) {
@@ -93,7 +93,7 @@ const std::string  Response::getResponseHeader( void ) {
         ss << "WWW-Authenticate: Basic realm=Restricted Area" << CRLF; }
     return (ss.str());
 }
-/* response-header
+/* Response-header
  * Accept-Ranges        { Section 14.5  } : Set à "none" -> vérifier
  * Age                  { Section 14.6  } : vraiment nécessaire ? Pas implémenté pour l'instant
  * ETag                 { Section 14.19 } : Idem que pour "Age"
@@ -106,12 +106,12 @@ const std::string  Response::getResponseHeader( void ) {
                                             implementors are encouraged to make this field a configurable
                                             option.
  * Vary                                   : An HTTP/1.1 server SHOULD include a Vary header field with any
-                                            cacheable response that is subject to server-driven negotiation.
+                                            cacheable Response that is subject to server-driven negotiation.
  * WWW-Authenticate                       : Error 401 (Unauthorized) The field value consists of at
                                             least one challenge that indicates the authentication scheme(s) and
                                             parameters applicable to the Request-URI. */
 
-const std::string  Response::getEntityHeader( void ) {
+const std::string  Response::getEntityHeader(void ) {
     std::ostringstream ss;
     if (_status == METHOD_NOT_ALLOWED)
         ss << "Allow: GET, POST, DELETE" << CRLF; // Corriger en obtenant l'information du fichier de configuration;
@@ -131,7 +131,7 @@ const std::string  Response::getEntityHeader( void ) {
 
        entity-header  = Allow                    ; Section 14.7
                       | Content-Encoding         ; Section 14.11 :      If the content-coding of an entity is not "identity", then the
-                                                                        response MUST include a Content-Encoding entity-header (section
+                                                                        Response MUST include a Content-Encoding entity-header (section
                                                                         14.11) that lists the non-identity content-coding(s) used.
                       | Content-Language         ; Section 14.12 :      MAY -> OPTIONAL.
                       | Content-Length           ; Section 14.13 :      Ok -> Vérifier que _body.size() correspond à _len ?
@@ -154,12 +154,12 @@ const std::string  Response::getEntityHeader( void ) {
  *
  */
 
-const std::string  Response::getStatusLine( void ) {
+const std::string  Response::getStatusLine(void ) {
     std::ostringstream ss;
     ss << "HTTP/1.1 " << _status << " " << _status_codes[_status] << CRLF;
     return (ss.str());
 }
 
-const std::string&  Response::getResponse( void ) {
+const std::string&  Response::getResponse(void ) {
     return _response;
 }

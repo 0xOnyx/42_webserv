@@ -1,7 +1,50 @@
 #include "mimes.hpp"
 
+std::string	mimes::get_type(const char *path)
+{
+	char	*pos;
+	int		min;
+	int		middle;
+	int 	max;
+	int 	res;
 
-mimes::t_entry	mimes::types[1202] =
+	if ((pos = strrchr((char *)path, '.')) == NULL)
+		pos = (char *)path;
+	min = 0;
+	max = (sizeof(mimes::types) / sizeof(*types) - 1);
+	while (min <= max)
+	{
+		middle = (int)(((max + min) / 2) + 0.5);
+		res = mimes::strcmpi(pos, mimes::types[middle].file_extension);
+		if (res == 0)
+			return (std::string(mimes::types[middle].file_extension));
+		else if (res > 0)
+			min = middle + 1;
+		else
+			max = middle - 1;
+	}
+	return (std::string(""));
+}
+
+int	mimes::strcmpi(const char *s1, const char *s2)
+{
+	int	i;
+
+	for (i = 0; s1[i] && s2[i]; i++)
+	{
+		if (s1[i] == s2[i] || (s1[i] ^ 32) == s2[i])
+			continue;
+		else
+			break ;
+	}
+	if (s1[i] == s2[i])
+		return (0);
+	if ((s1[i] | 32) < (s2[i] | 32))
+		return (-1);
+	return (1);
+}
+
+mimes::t_entry	mimes::types[1002] =
 {
 		{"123", "application/vnd.lotus-1-2-3"},
 		{"1km", "application/vnd.1000minds.decision-model+xml"},
@@ -833,7 +876,7 @@ mimes::t_entry	mimes::types[1202] =
 		{"scd", "application/x-msschedule"},
 		{"scm", "application/vnd.lotus-screencam"},
 		{"scq", "application/scvp-cv-request"},
-		{"scs", "application/scvp-cv-response"},
+		{"scs", "application/scvp-cv-Response"},
 		{"scss", "text/x-scss"},
 		{"scurl", "text/vnd.curl.scurl"},
 		{"sda", "application/vnd.stardivision.draw"},
@@ -900,7 +943,7 @@ mimes::t_entry	mimes::types[1202] =
 		{"spf", "application/vnd.yamaha.smaf-phrase"},
 		{"spl", "application/x-futuresplash"},
 		{"spot", "text/vnd.in3d.spot"},
-		{"spp", "application/scvp-vp-response"},
+		{"spp", "application/scvp-vp-Response"},
 		{"spq", "application/scvp-vp-request"},
 		{"spx", "audio/ogg"},
 		{"sql", "application/x-sql"},
@@ -1203,5 +1246,6 @@ mimes::t_entry	mimes::types[1202] =
 		 {"zip", "application/zip"},
 		 {"zir", "application/vnd.zul"},
 		 {"zirz", "application/vnd.zul"},
-		 {"zmm", "application/vnd.handheld-entertainment+xml}"
+		 {"zmm", "application/vnd.handheld-entertainment+xml"}
 };
+
