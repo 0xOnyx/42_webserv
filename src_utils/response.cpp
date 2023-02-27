@@ -1,5 +1,6 @@
 #include "response.hpp"
 
+
 std::map<int, std::string>  Response::_status_codes;
 bool                        Response::_initialized = {false};
 

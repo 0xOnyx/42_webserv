@@ -19,5 +19,6 @@ extern volatile bool is_running;
 # include "cgi.hpp"
 # include "cgi_parser.hpp"
 # include "static_serv.hpp"
+# include "mimes.hpp"
 
 #endif

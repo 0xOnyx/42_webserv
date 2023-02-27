@@ -23,7 +23,7 @@ PATH_UTIL			= src_utils/
 PATH_CGI			= src_cgi/
 PATH_OBJ			= objs/
 
-HEADER				= cgi.hpp config.hpp containers.hpp data.h engine.hpp includes.h server.hpp socket.hpp static_serv.hpp utils.h syslog.hpp request.hpp mimes.hpp
+HEADER				= cgi.hpp config.hpp containers.hpp data.h engine.hpp includes.h server.hpp socket.hpp static_serv.hpp utils.h syslog.hpp request.hpp mimes.hpp response.hpp
 SRC_CONFIG			= config.cpp
 SRC_ENGINE			= cgi.cpp engine.cpp static_serv.cpp
 SRC_ROUTINE			= main.cpp
