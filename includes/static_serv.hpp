@@ -9,7 +9,7 @@ public:
 	std::string	process_request(Request &request);
 	~Static_serv();
 private:
-	std::string directory_listen(std::string &path);
+	std::string directory_listen(std::string &path, std::string uri);
 };
 
 #endif

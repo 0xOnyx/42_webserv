@@ -5,7 +5,7 @@ Static_serv::Static_serv(std::map <std::string, std::string> location) : Engine(
 
 }
 
-std::string Static_serv::directory_listen(std::string &path)
+std::string Static_serv::directory_listen(std::string &path, std::string uri)
 {
 	std::ostringstream	http_out;
 	DIR					*dir_path;
@@ -30,7 +30,7 @@ std::string Static_serv::directory_listen(std::string &path)
 	}
 	http_out << "<ul>";
 	while ((info_dir = readdir(dir_path)) != NULL)
-		http_out << "<li><a href=\"" << info_dir->d_name << "\">" << info_dir->d_name << "</a></li>\n";
+		http_out << "<li><a href=\"" << uri  << "/" << info_dir->d_name << "\">" << info_dir->d_name << "</a></li>\n";
 	http_out << "</ul>";
 	http_out << "<hr>\n"
 			 << "</body>\n"
@@ -69,7 +69,7 @@ std::string	Static_serv::process_request(Request &request)
 		syslog(LOG_DEBUG, "error methods not allow");
 		if ((stat_element.st_mode & S_IFMT) == S_IFDIR && _location["autoindex"] == "on")
 		{
-			std::string auto_index = directory_listen(path);
+			std::string auto_index = directory_listen(path, request.getURI());
 			file_type = mimes::get_type(".html");
 			syslog(LOG_DEBUG, "directory liste for this path => %s", path.c_str());
 			return (Response(200, auto_index.size(), file_type, auto_index).getResponse());
@@ -77,16 +77,15 @@ std::string	Static_serv::process_request(Request &request)
 		else
 		{
 			syslog(LOG_DEBUG, "directory listen is not authorized for this path %s", path.c_str());
-			return (Response(405).getResponse());
+			return (Response(403).getResponse());
 		}
 	}
 	if (access(path.c_str(), R_OK) != 0 || (fd = open(path.c_str(), O_RDONLY)) < 0 || fstat(fd, &stat_element) != 0)
 	{
-		//TODO: create not authorized responsse
 		if (fd >= 0)
 			close(fd);
 		syslog(LOG_DEBUG, "error to open file");
-		return (Response(500).getResponse());
+		return (Response(401).getResponse());
 	}
 	size_file = (ssize_t)stat_element.st_size;
 	syslog(LOG_DEBUG, "size of the file %ld", size_file);

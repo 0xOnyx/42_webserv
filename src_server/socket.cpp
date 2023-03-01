@@ -41,7 +41,7 @@ int 	Socket::read_socket(int socket)
 		syslog(LOG_ERR, "Error with socket to read %d %m", socket);
 	current_buffer.resize(size + current_size);
 	current_str = std::string(current_buffer.begin(), current_buffer.end());
-	if ((res_pos = current_str.find("\r\n\r\n")) != std::string::npos)  //TODO: how to set is finish ?
+	if ((res_pos = current_str.find("\r\n\r\n")) != std::string::npos)
 	{
 		std::string header = current_str.substr(0, res_pos -1);
 		std::string buff_rest = current_str.substr(res_pos + std::string("\r\n\r\n").size());
@@ -75,8 +75,10 @@ int 	Socket::read_socket(int socket)
 		}
 		catch(std::exception const &e)
 		{
-			/// TODO : create request 400
+			std::string res_error = Response(400).getResponse();
+
 			syslog(LOG_DEBUG, "bad request error 400 %s", e.what());
+			std::copy(res_error.begin(), res_error.end(), std::back_inserter(current_write));
 		}
 		return (1);
 	}

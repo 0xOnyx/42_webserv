@@ -52,7 +52,7 @@ void	handler_poll(void *data, int event, poll_t *poll)
 		}
 	}
 #if defined __linux__
-	else if (event & (EPOLLRDHUP | EPOLLHUP | EPOLLERR))  //TODO: correct this and delete buffer to read_socket
+	else if (event & (EPOLLRDHUP | EPOLLHUP | EPOLLERR))
 #endif
 #if defined __APPLE__
 	else if (event == EV_ERROR)

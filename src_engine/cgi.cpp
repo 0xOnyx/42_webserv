@@ -56,14 +56,14 @@ std::string Cgi::exec_cgi(Request &request, std::string &path)
 		fd_body > 0 ? close(fd_body) : 0;
 		fd_out > 0 ? close(fd_out): 0;
 		syslog(LOG_ERR, "failed to create tmp file for the cgi %m");
-		return (std::string(""));
+		return (Response(500).getResponse());
 	}
 	if (unlink(tmp_file_in) < 0 || unlink(tmp_file_out) < 0)
 	{
 		close(fd_body);
 		close(fd_out);
 		syslog(LOG_ERR, "failed unlink tmp file for the cgi %m");
-		return (std::string(""));
+		return (Response(500).getResponse());
 	}
 	if (write(fd_body, request.get_body().c_str(), request.get_body().length()) < 0
 	|| lseek(fd_body, 0, SEEK_SET))
@@ -71,7 +71,7 @@ std::string Cgi::exec_cgi(Request &request, std::string &path)
 		close(fd_body);
 		close(fd_out);
 		syslog(LOG_ERR, "failed to write body to tmp file for the cgi %m");
-		return (std::string(""));
+		return (Response(500).getResponse());
 	}
 	if ((pid = fork()) == 0)
 	{
@@ -90,7 +90,7 @@ std::string Cgi::exec_cgi(Request &request, std::string &path)
 			close(fd_out);
 			close(fd_body);
 			syslog(LOG_ERR, "failed to get peername or getsockname %d %m", request.socketfd);
-			return (std::string(""));
+			exit(2);
 		}
 		if (client_addr.ss_family == AF_INET)
 			inet_ntop(client_addr.ss_family, (const void *)&((struct sockaddr_in *)&client_addr)->sin_addr, client_str_addr, INET_ADDRSTRLEN);
@@ -153,9 +153,8 @@ std::string Cgi::exec_cgi(Request &request, std::string &path)
 	}
 	else if (pid < 0)
 	{
-		//TODO : create request error server
 		syslog(LOG_ERR, "failed to fork cgi %m");
-		return (std::string(""));
+		return (Response(500).getResponse());
 	}
 	syslog(LOG_DEBUG, "WAIT FOR CGI %d", pid);
 	if (waitpid(pid, &status_pid, 0) < 0
@@ -220,8 +219,7 @@ std::string Cgi::process_request(Request &request)
 		}
 		catch(std::exception &e)
 		{
-			//todo : Process request error for 500;
-			return (std::string(""));
+			return (Response(500).getResponse());
 		}
 	}
 	else
