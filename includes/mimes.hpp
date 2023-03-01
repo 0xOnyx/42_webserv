@@ -11,7 +11,7 @@ private:
 		const char *file_extension;
 		const char *mime_type;
 	} t_entry;
-	static mimes::t_entry types[1002];
+	static mimes::t_entry types[1201];
 	static int	strcmpi(const char *s1, const char *s2);
 };
 

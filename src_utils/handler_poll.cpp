@@ -58,7 +58,7 @@ void	handler_poll(void *data, int event, poll_t *poll)
 	else if (event == EV_ERROR)
 #endif
 	{
-		syslog(LOG_INFO, "Connexion is close for the socket %d", event_data->fd);
+		syslog(LOG_INFO, "Connexion is close for the socket %d ", event_data->fd);
 		poll_del(poll, event_data->fd);
 		event_data->socket->delete_buff(event_data->fd);
 		close(event_data->fd);
@@ -104,6 +104,8 @@ void	handler_poll(void *data, int event, poll_t *poll)
 					syslog(LOG_WARNING, "failed to delete socket from poll %d %m", event_data->fd);
 #endif
 			close(event_data->fd);
+			poll_del(poll, event_data->fd);
+			event_data->socket->delete_buff(event_data->fd);
 			syslog(LOG_INFO, "close socket %d", event_data->fd);
 			delete event_data;
 			event_data = NULL;

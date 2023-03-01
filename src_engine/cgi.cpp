@@ -5,6 +5,24 @@ Cgi::Cgi(std::map<std::string, std::string> location) : Engine(location)
 
 }
 
+std::pair<std::string, std::string> Cgi::get_name(std::string &path)
+{
+	std::size_t	pos;
+	std::string name;
+	std::string path_info;
+
+	if ((pos = path.find(_location["CGI"])) == std::string::npos)
+		return (std::make_pair("", ""));
+	name = path.substr(0, pos + _location["CGI"].length());
+	path_info = path.substr(pos + _location["CGI"].length());
+	syslog(LOG_DEBUG, "new substr for the name => %s", name.c_str());
+	if ((pos = name.rfind("/")) == std::string::npos)
+		return (std::make_pair("", ""));
+	name = name.substr(pos);
+	syslog(LOG_DEBUG, "new substr for the name => %s", name.c_str());
+	return (std::make_pair(name, path_info));
+}
+
 std::string Cgi::exec_cgi(Request &request, std::string &path)
 {
 	char 					tmp_file_in[] = "/tmp/webservINXXXXXX";
@@ -21,6 +39,14 @@ std::string Cgi::exec_cgi(Request &request, std::string &path)
 	int 					pid;
 	int 					status_pid;
 	struct stat				stat_out = {};
+	std::string 			res_http;
+	std::pair<std::string, std::string>	name_to_exec;
+
+	sin_size = sizeof(struct sockaddr_storage);
+	name_to_exec = get_name(path);
+	name_to_exec.first = _location["exec"] + name_to_exec.first;
+	syslog(LOG_DEBUG, "name of exec => %s", name_to_exec.first.c_str());
+	syslog(LOG_DEBUG, "name of uri info => %s", name_to_exec.second.c_str());
 
 //If the GET method is used, the data comes from the QUERY_STRING variable.
 //If the POST method is used, this information is sent to your program using standard input.
@@ -39,7 +65,8 @@ std::string Cgi::exec_cgi(Request &request, std::string &path)
 		syslog(LOG_ERR, "failed unlink tmp file for the cgi %m");
 		return (std::string(""));
 	}
-	if (write(fd_body, request.get_body().c_str(), request.get_body().length()) < 0)
+	if (write(fd_body, request.get_body().c_str(), request.get_body().length()) < 0
+	|| lseek(fd_body, 0, SEEK_SET))
 	{
 		close(fd_body);
 		close(fd_out);
@@ -55,12 +82,15 @@ std::string Cgi::exec_cgi(Request &request, std::string &path)
 			close(fd_out);
 			exit(1);
 		}
+		close(fd_body);
+		close(fd_out);
 		if (getpeername(request.socketfd, (struct sockaddr *)&client_addr, &sin_size) < 0
 			|| getsockname(request.socketfd, (struct sockaddr *)&client_addr, &sin_size) < 0)
 		{
 			close(fd_out);
 			close(fd_body);
-			exit(1);
+			syslog(LOG_ERR, "failed to get peername or getsockname %d %m", request.socketfd);
+			return (std::string(""));
 		}
 		if (client_addr.ss_family == AF_INET)
 			inet_ntop(client_addr.ss_family, (const void *)&((struct sockaddr_in *)&client_addr)->sin_addr, client_str_addr, INET_ADDRSTRLEN);
@@ -94,17 +124,17 @@ std::string Cgi::exec_cgi(Request &request, std::string &path)
 			|| setenv("HTTP_CONNECTION", request.getHeaderValue("Connection").c_str(), 1) != 0
 			|| setenv("HTTP_REFERER", request.getHeaderValue("Referer").c_str(), 1) != 0
 			|| setenv("HTTP_USER_AGENT", request.getHeaderValue("User-Agent").c_str(), 1) != 0
-			|| setenv("PATH_INFO", request.getURIComp(PATH).c_str(), 1) != 0
+			|| setenv("PATH_INFO", name_to_exec.second.c_str(), 1) != 0
 			|| setenv("PATH_TRANSLATED", path.c_str(), 1) != 0
 			|| setenv("DOCUMENT_ROOT", _location["root"].c_str(), 1) != 0
-			|| setenv("QUERY_STRING", request.getURIComp(QUERY).c_str(), 1) != 0
+			|| setenv("QUERY_STRING", request.getURIComp(QUERY).length() > 0 ? request.getURIComp(QUERY).c_str()  + 1 : "", 1) != 0
 			|| setenv("REMOTE_ADDR", client_str_addr, 1) != 0
 			|| setenv("REMOTE_HOST", client_str_addr, 1) != 0
 			|| setenv("REMOTE_IDENT", request.getHeaderValue("Authorization").c_str(), 1) != 0
 			|| setenv("REMOTE_USER", request.getHeaderValue("Authorization").c_str(), 1) != 0
 			|| setenv("REQUEST_URI", request.getURI().c_str(), 1) != 0
 			|| setenv("REQUEST_METHOD", request.request_line[METHOD].c_str(), 1) != 0
-			|| setenv("SCRIPT_NAME", _location["exec"].c_str(), 1) != 0
+			|| setenv("SCRIPT_NAME", name_to_exec.first.c_str(), 1) != 0
 			|| setenv("SCRIPT_FILENAME", _location["exec"].c_str(), 1) != 0
 			|| setenv("SERVER_NAME", server_str_addr, 1) != 0
 			|| setenv("SERVER_PORT", port_str_server.str().c_str(), 1) != 0
@@ -113,12 +143,12 @@ std::string Cgi::exec_cgi(Request &request, std::string &path)
 		{
 			close(fd_body);
 			close(fd_out);
-			exit(1);
+			exit(3);
 		}
-		if (execl(_location["exec"].c_str(), _location["exec"].c_str(), NULL) != 0)
+		if (execl(name_to_exec.first.c_str(), _location["exec"].c_str(), NULL) != 0)
 		{
 			syslog(LOG_ERR, "failed to fork the cgi %m");
-			exit(1);
+			exit(4);
 		}
 	}
 	else if (pid < 0)
@@ -127,28 +157,36 @@ std::string Cgi::exec_cgi(Request &request, std::string &path)
 		syslog(LOG_ERR, "failed to fork cgi %m");
 		return (std::string(""));
 	}
+	syslog(LOG_DEBUG, "WAIT FOR CGI %d", pid);
 	if (waitpid(pid, &status_pid, 0) < 0
-		|| WIFEXITED(status_pid) != 0
-		|| WEXITSTATUS(status_pid) != 0)
+		|| (WIFEXITED(status_pid) && WEXITSTATUS(status_pid) != 0))
 	{
 		close(fd_body);
 		close(fd_out);
-		syslog(LOG_DEBUG, "failed to wait pid %d", pid);
+		syslog(LOG_DEBUG, "failed to wait pid %d error -> %d %m", pid, WEXITSTATUS(status_pid));
 		return ("");
 	}
 	if (lseek(fd_out, 0, SEEK_SET) < 0
 		|| fstat(fd_out, &stat_out) < 0)
 	{
-
+		close(fd_body);
+		close(fd_out);
+		syslog(LOG_DEBUG, "failed get info from file %m");
+		return ("");
 	}
 	buff_res.resize((ssize_t)stat_out.st_size);
-	if (read(fd_out, buff_res.data() ,(ssize_t)stat_out.st_size) < 0)
+	if (read(fd_out, buff_res.data() ,(size_t)stat_out.st_size) < 0)
 	{
 		close(fd_body);
 		close(fd_out);
+		syslog(LOG_DEBUG, "failed to read from file out size %lu %m ", (size_t)stat_out.st_size);
 		return (std::string(""));
 	}
-	return (std::string(buff_res.begin(), buff_res.end()));
+	close(fd_out);
+	close(fd_body);
+	res_http = std::string(buff_res.begin(), buff_res.end());
+	syslog(LOG_DEBUG, "resultat from cgi is => \n%s", res_http.c_str());
+	return (res_http);
 }
 
 std::string Cgi::process_request(Request &request)
@@ -175,14 +213,10 @@ std::string Cgi::process_request(Request &request)
 
 			cgi_str =  this->exec_cgi(request, path);
 			CGIParser	cgiparser(cgi_str);
-			//TODO: PROCESS request for cgi;
 			const std::string &body = cgiparser.getBody();
-			const std::map<std::string, std::string>	&header = cgiparser.getHeaders();
+			//const std::map<std::string, std::string>	&header = cgiparser.getHeaders(); TODO : MODIFY THIS BY NEW VERSION OF RESPONSE CLASS
 
-			(void)body;
-			(void)header;
-			//TODO: create request Response
-			return (std::string(""));
+			return (Response(200, body.size(), mimes::get_type(".html"), body).getResponse());
 		}
 		catch(std::exception &e)
 		{

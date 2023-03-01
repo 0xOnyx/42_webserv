@@ -43,10 +43,11 @@ int 	Socket::read_socket(int socket)
 	current_str = std::string(current_buffer.begin(), current_buffer.end());
 	if ((res_pos = current_str.find("\r\n\r\n")) != std::string::npos)  //TODO: how to set is finish ?
 	{
-		std::string header = current_str.substr(0, res_pos);
-		std::string buff_rest = current_str.substr(res_pos, 0);
+		std::string header = current_str.substr(0, res_pos -1);
+		std::string buff_rest = current_str.substr(res_pos + std::string("\r\n\r\n").size());
 
 		current_buffer.clear();
+		syslog(LOG_DEBUG, "buff rest => %s", buff_rest.c_str());
 		std::copy(buff_rest.begin(), buff_rest.end(), std::back_inserter(current_buffer));
 		syslog(LOG_DEBUG, "value of request header -> %s", header.c_str());
 		try

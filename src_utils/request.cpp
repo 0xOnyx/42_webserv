@@ -16,7 +16,7 @@ bool is_a_number(const std::string& s) {
     return true;
 }
 
-Request::Request( int _sockfd, std::string & buffer ) : socketfd(_sockfd)
+Request::Request( int _sockfd, std::string & buffer ) : content_length(0), socketfd(_sockfd)
 {
 	std::string token;
 

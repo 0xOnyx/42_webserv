@@ -42,20 +42,18 @@ Response::Response(int status ) : _status(status) {
 
 Response::~Response() {}
 
-std::string    Response::setDate() {
-	char 	*res;
-    time_t 	now;
+std::string    Response::setDate()
+{
+	time_t now;
 
 	now = time(NULL);
-	if ((res = ctime(&now)))
-		return (std::string(""));
-    return (std::string(res));
+	return (ctime(&now));
 }
 
 std::string  Response::getGeneralHeader( ) {
     std::ostringstream ss;
 
-    ss << "Date: " << setDate() << CRLF;
+    ss << "Date: " << setDate();
     ss << "Connection: close" << CRLF; //Update en fonction du fichier de configuration ?
     return (ss.str());
 }

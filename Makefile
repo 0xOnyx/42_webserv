@@ -1,7 +1,7 @@
 include .env
 export
 NAME = webserv
-CGI	= cgi-bin/cgi
+CGI	= cgi-bin/c.cgi
 
 COLOR_ESC			= \033
 COLOR_WHITE			= $(COLOR_ESC)[97m
@@ -41,7 +41,9 @@ SRC_CGIS			= $(addprefix $(PATH_CGI),$(SRC_CGI))
 SRCS 				= $(SRC_CONFIGS) $(SRC_ENGINES) $(SRC_ROUTINES) $(SRC_SERVERS) $(SRC_UTILS)
 
 OBJ					= $(SRCS:.cpp=.o)
+CGI_O				= $(SRC_CGIS:.c=.o)
 OBJS				= $(addprefix $(PATH_OBJ),$(OBJ))
+CGIS_O				= $(addprefix $(PATH_OBJ),$(CGI_O))
 HEADERS				= $(addprefix $(PATH_HEADER),$(HEADER))
 
 ifndef DEBUG
@@ -114,11 +116,17 @@ $(PATH_OBJ)$(PATH_UTIL)%.o		: $(PATH_UTIL)%.cpp $(HEADERS)
 	@$(CPP) $(CXXFLAGS) $(OPTIONS) -o $(@) -c $(<)
 	@printf "$(COLOR_GREEN)[$(COLOR_WHITE)INFO$(COLOR_GREEN)] COMPILATION $(COLOR_MAGENTA)DEBUG => [%s] $(COLOR_BOLD)UTIL\t\t=>\t$(COLOR_WHITE)%s$(COLOR_RESET)\n" $(DEBUG) $<
 
+$(PATH_OBJ)$(PATH_CGI)%.o		: $(PATH_CGI)%.c
+	@mkdir -p $(PATH_OBJ)$(PATH_CGI)
+	@$(CC) $(CFLAGS) -o $(@) -c $(<)
+	@printf "$(COLOR_GREEN)[$(COLOR_WHITE)INFO$(COLOR_GREEN)] COMPILATION $(COLOR_MAGENTA)DEBUG => [%s] $(COLOR_BOLD)CGI\t\t=>\t$(COLOR_WHITE)%s$(COLOR_RESET)\n" $(DEBUG) $<
+
+
 cgi: $(CGI)
 
-$(CGI):
-	@printf "$(COLOR_GREEN)[$(COLOR_WHITE)INFO$(COLOR_GREEN)] COMPILATION $(COLOR_CYAN)DEBUG => [%s] $(COLOR_BOLD)CGI\t\t=>\t$(COLOR_WHITE)%s$(COLOR_RESET)\n" $(DEBUG) $@
-	@$(CC) -o $@ $(SRC_CGIS)
+$(CGI):  $(CGIS_O)
+	@echo "$(COLOR_GREEN)[$(COLOR_WHITE)INFO$(COLOR_GREEN)] LINKAGE $(COLOR_BOLD)CGI OBJS FILE =>\n\t $(COLOR_WHITE)$(CGIS_O:.o=.o\n\t)"
+	@$(CC) $(CFLAGS) -o $@ $(CGIS_O)
 
 $(NAME)		: $(OBJS) $(CGI)
 	@$(CPP) $(CXXFLAGS) $(OPTIONS) -o $(@) $(OBJS) $(LIBS)
@@ -127,14 +135,16 @@ $(NAME)		: $(OBJS) $(CGI)
 
 clean		:
 	@$(RM) $(OBJS)
+	@$(RM) $(CGIS_O)
+	@echo "$(COLOR_GREEN)[$(COLOR_WHITE)INFO$(COLOR_GREEN)] DELETE $(COLOR_BOLD)ALL OBJS FILE CGI =>\n\t $(COLOR_WHITE)$(CGIS_O:.o=.o\n\t)"
 	@$(RM) $(PATH_OBJ)
-	@echo "$(COLOR_GREEN)[$(COLOR_WHITE)INFO$(COLOR_GREEN)] DELETE $(COLOR_BOLD)ALL OBJS FILE =>\n\t $(COLOR_WHITE)$(OBJS:.o=.o\n\t)"
+	@echo "$(COLOR_GREEN)[$(COLOR_WHITE)INFO$(COLOR_GREEN)] DELETE $(COLOR_BOLD)ALL OBJS FILE $(NAME) =>\n\t $(COLOR_WHITE)$(OBJS:.o=.o\n\t)"
 	@echo "$(COLOR_GREEN)[$(COLOR_WHITE)INFO$(COLOR_GREEN)] CLEAN FINISH !$(COLOR_RESET)"
 
 fclean		: clean
 	@$(RM) $(NAME)
 	@$(RM) $(CGI)
-	@echo "$(COLOR_GREEN)[$(COLOR_WHITE)INFO$(COLOR_GREEN)] DELETE $(COLOR_BOLD)PROGRAMME =>\n\t $(COLOR_WHITE)$(NAME)"
+	@echo "$(COLOR_GREEN)[$(COLOR_WHITE)INFO$(COLOR_GREEN)] DELETE $(COLOR_BOLD)PROGRAMME AND CGI =>\n\t $(COLOR_WHITE)$(NAME)"
 	@echo "$(COLOR_GREEN)[$(COLOR_WHITE)INFO$(COLOR_GREEN)] FCLEAN FINISH !$(COLOR_RESET)"
 
 re			: fclean all

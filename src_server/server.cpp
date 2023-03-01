@@ -20,18 +20,24 @@ void	Server::set_error_page(std::string &error)
 
 void	Server::read_body(Request &request, std::vector<char> &rest_buff)
 {
+	int 							status;
 	std::vector<char>::size_type	content_len;
 	std::vector<char>::size_type	size_buffer;
 
 	size_buffer = rest_buff.size();
 	if ((content_len = request.has_body()))
 	{
+
 		rest_buff.resize(content_len);
-		if (recv(request.socketfd,
-								&rest_buff[size_buffer], content_len - size_buffer, 0 < 0))
+		if (size_buffer < content_len)
 		{
-			syslog(LOG_ERR, "ERROR to read body from socket %d %m", request.socketfd);
-			throw std::runtime_error("error to read body from sockt");
+			syslog(LOG_DEBUG, "read body len => %lu", content_len - size_buffer);
+			if ((status = recv(request.socketfd,
+									&rest_buff[size_buffer], content_len - size_buffer, MSG_DONTWAIT)) < 0)
+			{
+				syslog(LOG_ERR, "ERROR to read body from socket %d error => %d %m",  request.socketfd, status);
+				throw std::runtime_error("error to read body from socket");
+			}
 		}
 		request.set_body(std::string(rest_buff.begin(), rest_buff.end()));
 	}

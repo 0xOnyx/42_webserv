@@ -62,7 +62,7 @@ std::string	Static_serv::process_request(Request &request)
 	if (stat(path.c_str(), &stat_element) != 0)
 	{
 		syslog(LOG_DEBUG, "failed to stat element");
-		return (Response(500).getResponse());
+		return (Response(404).getResponse());
 	}
 	if ((stat_element.st_mode & S_IFMT) != S_IFREG)
 	{

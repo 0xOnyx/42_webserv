@@ -10,6 +10,7 @@ public:
 	virtual ~Cgi();
 private:
 	std::string exec_cgi(Request &request, std::string &path);
+	std::pair<std::string, std::string> get_name(std::string &path);
 };
 
 #endif
