@@ -27,7 +27,6 @@ void	Server::read_body(Request &request, std::vector<char> &rest_buff)
 	size_buffer = rest_buff.size();
 	if ((content_len = request.has_body()))
 	{
-
 		rest_buff.resize(content_len);
 		if (size_buffer < content_len)
 		{

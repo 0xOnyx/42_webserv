@@ -65,7 +65,10 @@ std::string Cgi::exec_cgi(Request &request, std::string &path)
 		syslog(LOG_ERR, "failed unlink tmp file for the cgi %m");
 		return (Response(500).getResponse());
 	}
-	if (write(fd_body, request.get_body().c_str(), request.get_body().length()) < 0
+	unsigned int len = request.get_body().length();
+	if (std::atoi(_location["max_body"].c_str()) > 0)
+		len = std::atoi(_location["max_body"].c_str());
+	if (write(fd_body, request.get_body().c_str(), len) < 0
 	|| lseek(fd_body, 0, SEEK_SET))
 	{
 		close(fd_body);
