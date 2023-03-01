@@ -201,6 +201,7 @@ Containers::~Containers()
 	std::vector<struct s_event *>::iterator	iter_event;
 	_binding_type::iterator 				iter_bind;
 
+	syslog(LOG_DEBUG, "destructor containers called\n");
 	if (close(_poll.fd) != 0)
 		syslog(LOG_ERR, "failed to close poll %m");
 	for (iter_event = _events.begin(); iter_event != _events.end(); iter_event++)

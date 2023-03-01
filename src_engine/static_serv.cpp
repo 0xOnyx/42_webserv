@@ -84,7 +84,7 @@ std::string	Static_serv::process_request(Request &request)
 	{
 		if (fd >= 0)
 			close(fd);
-		syslog(LOG_DEBUG, "error to open file");
+		syslog(LOG_DEBUG, "error to open file %m");
 		return (Response(401).getResponse());
 	}
 	size_file = (ssize_t)stat_element.st_size;
@@ -96,7 +96,7 @@ std::string	Static_serv::process_request(Request &request)
 		syslog(LOG_DEBUG, "error to read from file descriptor");
 		return (Response(500).getResponse());
 	}
-
+ 	close(fd);
 
 	file_str = std::string(file_content.begin(), file_content.end());
 	syslog(LOG_DEBUG, "content of the file %s", file_str.c_str());

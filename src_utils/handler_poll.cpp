@@ -13,12 +13,14 @@ void	handler_poll(void *data, int event, poll_t *poll)
 	event_data = static_cast<struct s_event *>(data);
 	if (event_data->fd == event_data->socket->get_socketfd())
 	{
+		syslog(LOG_DEBUG, "new connection from socket server => %d", event_data->fd);
 		if ((new_socket = accept(event_data->fd, (struct sockaddr *)&client_addr, &sin_size)) < 0)
 		{
 			syslog(LOG_WARNING, "failed to accept new connection %m");
 			return ;
 		}
 		set_nonblocking(new_socket);
+		syslog(LOG_INFO, "accept new connection => %d", new_socket);
 		new_data = new struct s_event;
 		new_data->fd = new_socket;
 		new_data->socket = event_data->socket;
@@ -58,6 +60,15 @@ void	handler_poll(void *data, int event, poll_t *poll)
 	else if (event == EV_ERROR)
 #endif
 	{
+		char tmp[40000];
+		int status = 0;
+		while ((status = read(event_data->fd, tmp, 40000)) < 0)
+		{
+			syslog(LOG_DEBUG, "CONTENT READ => %s", tmp);
+			bzero(tmp, 4000);
+		}
+		syslog(LOG_DEBUG, "CONTENT STATUS => %d", status);
+
 		syslog(LOG_INFO, "Connexion is close for the socket %d ", event_data->fd);
 		poll_del(poll, event_data->fd);
 		event_data->socket->delete_buff(event_data->fd);
@@ -103,7 +114,17 @@ void	handler_poll(void *data, int event, poll_t *poll)
 			if (poll_del(poll, event_data->fd)  != 0)
 					syslog(LOG_WARNING, "failed to delete socket from poll %d %m", event_data->fd);
 #endif
-			close(event_data->fd);
+			char tmp[40000];
+			int status = 0;
+			while ((status = read(event_data->fd, tmp, 40000)) < 0)
+			{
+				syslog(LOG_DEBUG, "CONTENT READ => %s", tmp);
+				bzero(tmp, 4000);
+			}
+			syslog(LOG_DEBUG, "CONTENT STATUS => %d", status);
+
+			if (close(event_data->fd) < 0)
+				syslog(LOG_DEBUG, "failed to close socket => %d %m", event_data->fd);
 			poll_del(poll, event_data->fd);
 			event_data->socket->delete_buff(event_data->fd);
 			syslog(LOG_INFO, "close socket %d", event_data->fd);
