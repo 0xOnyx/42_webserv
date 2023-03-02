@@ -60,14 +60,25 @@ void	handler_poll(void *data, int event, poll_t *poll)
 	else if (event == EV_ERROR)
 #endif
 	{
-		char tmp[40000];
-		int status = 0;
-		while ((status = read(event_data->fd, tmp, 40000)) < 0)
 		{
-			syslog(LOG_DEBUG, "CONTENT READ => %s", tmp);
-			bzero(tmp, 4000);
+			char tmp[1];
+			ssize_t status = 0;
+			errno = 0;
+			while ((status = read(event_data->fd, tmp, 1)) > 0)
+			{
+				syslog(LOG_DEBUG, "CONTENT READ => %s", tmp);
+				bzero(tmp, 1);
+			}
+
+			syslog(LOG_DEBUG, "CONTENT STATUS => %ld %m", status);
+			if ((status = write(event_data->fd, tmp, 1)) > 0)
+			{
+				syslog(LOG_DEBUG, "CONTENT WRITE => %s", tmp);
+			}
+
+			syslog(LOG_DEBUG, "CONTENT STATUS => %ld %m", status);
 		}
-		syslog(LOG_DEBUG, "CONTENT STATUS => %d", status);
+
 
 		syslog(LOG_INFO, "Connexion is close for the socket %d ", event_data->fd);
 		poll_del(poll, event_data->fd);
@@ -114,14 +125,25 @@ void	handler_poll(void *data, int event, poll_t *poll)
 			if (poll_del(poll, event_data->fd)  != 0)
 					syslog(LOG_WARNING, "failed to delete socket from poll %d %m", event_data->fd);
 #endif
-			char tmp[40000];
-			int status = 0;
-			while ((status = read(event_data->fd, tmp, 40000)) < 0)
+
 			{
-				syslog(LOG_DEBUG, "CONTENT READ => %s", tmp);
-				bzero(tmp, 4000);
+				char tmp[1];
+				ssize_t status = 0;
+				errno = 0;
+				while ((status = read(event_data->fd, tmp, 1)) > 0)
+				{
+					syslog(LOG_DEBUG, "CONTENT READ => %s", tmp);
+					bzero(tmp, 1);
+				}
+
+				syslog(LOG_DEBUG, "CONTENT STATUS => %ld %m", status);
+				if ((status = write(event_data->fd, tmp, 1)) > 0)
+				{
+					syslog(LOG_DEBUG, "CONTENT WRITE => %s", tmp);
+				}
+
+				syslog(LOG_DEBUG, "CONTENT STATUS => %ld %m", status);
 			}
-			syslog(LOG_DEBUG, "CONTENT STATUS => %d", status);
 
 			if (close(event_data->fd) < 0)
 				syslog(LOG_DEBUG, "failed to close socket => %d %m", event_data->fd);

@@ -1,7 +1,7 @@
 #ifndef SOCKET_HPP
 # define SOCKET_HPP
 # include "includes.h"
-# define MAX_QUEUE 10
+# define MAX_QUEUE 1000
 # define BUFFER_SIZE 4096
 
 class Socket
