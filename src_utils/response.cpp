@@ -11,6 +11,12 @@ void Response::initStatusCode(void ) {
     _status_codes[ACCEPTED] = "Accepted";
     _status_codes[NO_CONTENT] = " No Content";
     _status_codes[MULTIPLE] = "Multiple Choices";
+    _status_codes[MOVED] = "Moved Permanently";
+    _status_codes[FOUND] = "Found";
+    _status_codes[OTHER] = "See Other";
+    _status_codes[NOT_MOD] = "Not Modified";
+    _status_codes[TMP_REDIR] = "Temporary Redirect";
+    _status_codes[PERM_REDIR] = "Permanent Redirect";
     _status_codes[BAD_REQUEST] = "Bad Request";
     _status_codes[UNAUTHORIZED] = "Unauthorized";
     _status_codes[FORBIDDEN] = "Forbidden";
