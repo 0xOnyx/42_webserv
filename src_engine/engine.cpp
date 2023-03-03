@@ -13,5 +13,5 @@ std::string	Engine::process_request(Request &request)
 
 Engine::~Engine()
 {
-
+	syslog(LOG_DEBUG, "Destrcutor Engine called");
 }

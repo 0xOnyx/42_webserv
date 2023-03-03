@@ -71,6 +71,7 @@ Server::~Server()
 {
 	std::map<std::string, class Engine *>::iterator 	iter;
 
+	syslog(LOG_DEBUG, "Destructor Server called");
 	for(iter = _location.begin(); iter != _location.end(); iter++)
 		delete iter->second;
 }

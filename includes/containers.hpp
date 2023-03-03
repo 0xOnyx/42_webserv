@@ -9,7 +9,8 @@ struct	ServerConfig
 {
 	pair_str	listen;
 	std::string	servername;
-	std::string	error;
+	std::string	error_4xx;
+	std::string error_5xx;
 };
 
 class Containers

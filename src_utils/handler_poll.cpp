@@ -1,5 +1,29 @@
 #include "includes.h"
 
+
+static void	delete_time_wait_state(int sockfd)
+{
+	char tmp[1];
+	ssize_t status = 0;
+	errno = 0;
+	syslog(LOG_DEBUG, "READ FROM BUFF => %d", sockfd);
+	while ((status = recv(sockfd, tmp, 1, MSG_DONTWAIT)) > 0)
+	{
+		syslog(LOG_DEBUG, "CONTENT READ => %s", tmp);
+		bzero(tmp, 1);
+	}
+	errno = 0;
+	syslog(LOG_DEBUG, "CONTENT STATUS => %ld %m", status);
+	tmp[0] = 0;
+	if ((status = write(sockfd, tmp, 1)) > 0)
+	{
+		syslog(LOG_DEBUG, "CONTENT WRITE => %s", tmp);
+	}
+
+	syslog(LOG_DEBUG, "CONTENT STATUS => %ld %m", status);
+	shutdown(sockfd, SHUT_RDWR);
+}
+
 void	handler_poll(void *data, int event, poll_t *poll)
 {
 	struct s_event			*new_data;
@@ -60,30 +84,13 @@ void	handler_poll(void *data, int event, poll_t *poll)
 	else if (event == EV_ERROR)
 #endif
 	{
-		{
-			char tmp[1];
-			ssize_t status = 0;
-			errno = 0;
-			while ((status = read(event_data->fd, tmp, 1)) > 0)
-			{
-				syslog(LOG_DEBUG, "CONTENT READ => %s", tmp);
-				bzero(tmp, 1);
-			}
+		delete_time_wait_state(event_data->fd);
 
-			syslog(LOG_DEBUG, "CONTENT STATUS => %ld %m", status);
-			if ((status = write(event_data->fd, tmp, 1)) > 0)
-			{
-				syslog(LOG_DEBUG, "CONTENT WRITE => %s", tmp);
-			}
-
-			syslog(LOG_DEBUG, "CONTENT STATUS => %ld %m", status);
-		}
-
-
-		syslog(LOG_INFO, "Connexion is close for the socket %d ", event_data->fd);
+		if (close(event_data->fd) < 0)
+			syslog(LOG_DEBUG, "failed to close socket => %d %m", event_data->fd);
 		poll_del(poll, event_data->fd);
 		event_data->socket->delete_buff(event_data->fd);
-		close(event_data->fd);
+		syslog(LOG_INFO, "close socket %d", event_data->fd);
 		delete event_data;
 	}
 #if defined __linux__
@@ -126,25 +133,7 @@ void	handler_poll(void *data, int event, poll_t *poll)
 					syslog(LOG_WARNING, "failed to delete socket from poll %d %m", event_data->fd);
 #endif
 
-			{
-				char tmp[1];
-				ssize_t status = 0;
-				errno = 0;
-				while ((status = read(event_data->fd, tmp, 1)) > 0)
-				{
-					syslog(LOG_DEBUG, "CONTENT READ => %s", tmp);
-					bzero(tmp, 1);
-				}
-
-				syslog(LOG_DEBUG, "CONTENT STATUS => %ld %m", status);
-				if ((status = write(event_data->fd, tmp, 1)) > 0)
-				{
-					syslog(LOG_DEBUG, "CONTENT WRITE => %s", tmp);
-				}
-
-				syslog(LOG_DEBUG, "CONTENT STATUS => %ld %m", status);
-			}
-
+			delete_time_wait_state(event_data->fd);
 			if (close(event_data->fd) < 0)
 				syslog(LOG_DEBUG, "failed to close socket => %d %m", event_data->fd);
 			poll_del(poll, event_data->fd);

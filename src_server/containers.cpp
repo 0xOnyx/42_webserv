@@ -48,7 +48,13 @@ void	Containers::_add_location(class Server *current_server, std::map<std::strin
 		throw std::runtime_error("not set a location if server not declare");
 	if ((iterator_location = location.find("path")) == location.end() || iterator_location->second.length() <= 0)
 		throw std::runtime_error("the path is not set for the location");
-	if (location.find("CGI") != location.end())
+	if (location.find("link") != location.end())
+	{
+		engine = dynamic_cast<class Engine *>(new Redirect(location));
+		syslog(LOG_DEBUG, "add redirect engine");
+		current_server->add_engine(location["path"], engine);
+	}
+	else if (location.find("CGI") != location.end())
 	{
 		engine = dynamic_cast<class Engine *>(new Cgi(location));
 		syslog(LOG_DEBUG, "add cgi engine");
@@ -114,14 +120,19 @@ void	Containers::_parse_config(char *file)
 			config.servername.erase(config.servername.find(';'), 1);
 			syslog(LOG_DEBUG, "servername => %s", config.servername.c_str());
 		}
-		else if (keyword == "error")
+		else if (keyword == "error_4xx" || keyword == "error_5xx")
 		{
-			ss >> config.error;
-			config.error.erase(config.error.find(';'), 1);
-			syslog(LOG_DEBUG, "error page => %s", config.error.c_str());
+			std::string	*current;
+			if (keyword == "error_4xx")
+				current = &config.error_4xx;
+			else
+				current = &config.error_5xx;
+			ss >> *current;
+			current->erase(current->find(';'), 1);
+			syslog(LOG_DEBUG, "error page => %s", current->c_str());
 			if (!current_server)
 				throw std::runtime_error("not set a error if server not declare");
-			current_server->set_error_page(config.error);
+			current_server->set_error_page(*current);
 		}
 		else if (keyword == "location")
 		{
@@ -130,7 +141,7 @@ void	Containers::_parse_config(char *file)
 			ss >> location["path"];
 			syslog(LOG_DEBUG, "new location => %s", location["path"].c_str());
 		}
-		else if (keyword == "index" || keyword == "root" || keyword == "CGI" || keyword == "exec" || keyword == "autoindex")
+		else if (keyword == "index" || keyword == "root" || keyword == "CGI" || keyword == "exec" || keyword == "autoindex" || keyword == "link")
 		{
 			ss >> location[keyword];
 			location[keyword].erase(location[keyword].find(';'), 1);
@@ -208,4 +219,5 @@ Containers::~Containers()
 		delete *iter_event;
 	for (iter_bind = _binding.begin(); iter_bind != _binding.end(); iter_bind++)
 		delete iter_bind->second;
+
 }

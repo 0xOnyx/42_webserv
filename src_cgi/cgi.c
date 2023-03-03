@@ -42,7 +42,7 @@ int	main(void)
 {
 	char *res;
 	struct stat stat_file;
-	int visits;
+	long visits;
 	int fd;
 
 	visits = 0;
@@ -70,14 +70,15 @@ int	main(void)
 			perror("[ERROR]");
 			return (3);
 		}
-		res = (char *) alloca((size_t) stat_file.st_size);
+		res = (char *) alloca((size_t) stat_file.st_size + 1);
 		if (read(fd, res, stat_file.st_size) < 0)
 		{
 			close(fd);
 			perror("[ERROR]");
 			return (4);
 		}
-		sscanf(res, "%d", &visits);
+		res[stat_file.st_size] = 0;
+		visits = strtol(res, NULL, 10);
 	}
 	if (lseek(fd, 0, SEEK_SET) != 0)
 	{
@@ -87,7 +88,7 @@ int	main(void)
 	}
 	html(visits);
 	visits++;
-	dprintf(fd, "%d", visits);
+	dprintf(fd, "%ld", visits);
 	close(fd);
 	return (0);
 }

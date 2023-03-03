@@ -150,7 +150,10 @@ void	Socket::init()
 		close(_socket_fd);
 	}
 	if (rp == NULL)
+	{
+		freeaddrinfo(res);
 		throw std::runtime_error("Could not bind socket to any address");
+	}
 	if (listen(_socket_fd, MAX_QUEUE) == -1)
 		throw std::runtime_error(strerror(errno));
 	set_nonblocking(_socket_fd);
@@ -161,6 +164,7 @@ Socket::~Socket()
 {
 	std::map<std::string, class Server *>::iterator iter;
 
+	syslog(LOG_DEBUG, "Socket destructor called");
 	for (iter = _server.begin(); iter != _server.end(); iter++)
 		delete iter->second;
 	close(_socket_fd);

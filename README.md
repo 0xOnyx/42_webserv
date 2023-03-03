@@ -1,7 +1,7 @@
 # 42_webserv
 Webserv light in c++ 98 with epoll 
 
-redirection and error page and mac version
+redirection and error page and
 
 ## CLASS 
 ```c
