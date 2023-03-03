@@ -34,13 +34,18 @@ int poll_wait(poll_t *poll, size_t max)
 	// Check if kevent returned prematurely.
 	if (count == -1)
 		return (1);
-
+	try
+	{
 // Process the events.
-	for (int i = 0; i < count; i++)
-		poll->cb(events[i].udata,
-			events[i].flags & EV_ERROR ? events[i].flags : events[i].filter,
-			poll);
-
+		for (int i = 0; i < count; i++)
+			poll->cb(events[i].udata,
+					 events[i].flags & EV_ERROR ? events[i].flags : events[i].filter,
+					 poll);
+	}
+	catch(std::exception const &e)
+	{
+		syslog(LOG_ERR, "failed to execute event");
+	}
 	return (0);
 }
 

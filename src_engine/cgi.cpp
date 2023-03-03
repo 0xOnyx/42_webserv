@@ -56,14 +56,14 @@ std::string Cgi::exec_cgi(Request &request, std::string &path)
 		fd_body > 0 ? close(fd_body) : 0;
 		fd_out > 0 ? close(fd_out): 0;
 		syslog(LOG_ERR, "failed to create tmp file for the cgi %m");
-		return (Response(500).getResponse());
+		throw std::runtime_error("failed to create tmp file for the cgi");
 	}
 	if (unlink(tmp_file_in) < 0 || unlink(tmp_file_out) < 0)
 	{
 		close(fd_body);
 		close(fd_out);
 		syslog(LOG_ERR, "failed unlink tmp file for the cgi %m");
-		return (Response(500).getResponse());
+		throw std::runtime_error("failed unlink tmp file for the cgi");
 	}
 	unsigned int len = request.get_body().length();
 	if (std::atoi(_location["max_body"].c_str()) > 0)
@@ -74,7 +74,7 @@ std::string Cgi::exec_cgi(Request &request, std::string &path)
 		close(fd_body);
 		close(fd_out);
 		syslog(LOG_ERR, "failed to write body to tmp file for the cgi %m");
-		return (Response(500).getResponse());
+		throw std::runtime_error("failed to write body to tmp file for the cgi");
 	}
 	if ((pid = fork()) == 0)
 	{
@@ -157,7 +157,7 @@ std::string Cgi::exec_cgi(Request &request, std::string &path)
 	else if (pid < 0)
 	{
 		syslog(LOG_ERR, "failed to fork cgi %m");
-		return (Response(500).getResponse());
+		throw std::runtime_error("failed to fork cgi");
 	}
 	syslog(LOG_DEBUG, "WAIT FOR CGI %d", pid);
 	if (waitpid(pid, &status_pid, 0) < 0
@@ -166,7 +166,7 @@ std::string Cgi::exec_cgi(Request &request, std::string &path)
 		close(fd_body);
 		close(fd_out);
 		syslog(LOG_DEBUG, "failed to wait pid %d error -> %d %m", pid, WEXITSTATUS(status_pid));
-		return ("");
+		throw std::runtime_error("failed to wait pid ");
 	}
 	if (lseek(fd_out, 0, SEEK_SET) < 0
 		|| fstat(fd_out, &stat_out) < 0)
@@ -174,7 +174,7 @@ std::string Cgi::exec_cgi(Request &request, std::string &path)
 		close(fd_body);
 		close(fd_out);
 		syslog(LOG_DEBUG, "failed get info from file %m");
-		return ("");
+		throw std::runtime_error("failed get info from file");
 	}
 	buff_res.resize((ssize_t)stat_out.st_size);
 	if (read(fd_out, buff_res.data() ,(size_t)stat_out.st_size) < 0)
@@ -182,7 +182,7 @@ std::string Cgi::exec_cgi(Request &request, std::string &path)
 		close(fd_body);
 		close(fd_out);
 		syslog(LOG_DEBUG, "failed to read from file out size %lu %m ", (size_t)stat_out.st_size);
-		return (std::string(""));
+		throw std::runtime_error("failed to read from file out size");
 	}
 	close(fd_out);
 	close(fd_body);
@@ -222,7 +222,8 @@ std::string Cgi::process_request(Request &request)
 		}
 		catch(std::exception &e)
 		{
-			return (Response(500).getResponse());
+			syslog(LOG_ERR, "runtime error => %s", e.what());
+			return (generate_error(500, _location));
 		}
 	}
 	else

@@ -27,7 +27,7 @@ CGIParser::CGIParser( const std::string & buffer ) {
         throw ParseError();
 }
 
-CGIParser::~CGIParser( ) {}
+CGIParser::~CGIParser() {}
 
 const std::map<std::string, std::string>&   CGIParser::getHeaders( ) {
     return (this->_headers);

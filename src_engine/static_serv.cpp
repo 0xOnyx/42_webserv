@@ -41,7 +41,7 @@ std::string Static_serv::directory_listen(std::string &path, std::string uri)
 std::string	Static_serv::process_request(Request &request)
 {
 	struct stat			stat_element = {};
-	char 				*file_content;
+	std::vector<char>	file_content;
 	std::string 		file_type;
 	std::string 		file_str;
 	std::string 		path;
@@ -62,7 +62,7 @@ std::string	Static_serv::process_request(Request &request)
 	if (stat(path.c_str(), &stat_element) != 0)
 	{
 		syslog(LOG_DEBUG, "failed to stat element");
-		return (Response(404).getResponse());
+		return (generate_error(404, _location));
 	}
 	if ((stat_element.st_mode & S_IFMT) != S_IFREG)
 	{
@@ -77,7 +77,7 @@ std::string	Static_serv::process_request(Request &request)
 		else
 		{
 			syslog(LOG_DEBUG, "directory listen is not authorized for this path %s", path.c_str());
-			return (Response(403).getResponse());
+			return (generate_error(403, _location));
 		}
 	}
 	if (access(path.c_str(), R_OK) != 0 || (fd = open(path.c_str(), O_RDONLY)) < 0 || fstat(fd, &stat_element) != 0)
@@ -85,17 +85,16 @@ std::string	Static_serv::process_request(Request &request)
 		if (fd >= 0)
 			close(fd);
 		syslog(LOG_DEBUG, "error to open file %m");
-		return (Response(401).getResponse());
+		return (generate_error(401, _location));
 	}
 	size_file = (ssize_t)stat_element.st_size;
 	syslog(LOG_DEBUG, "size of the file %ld", size_file);
-	if ((buff = (char *)mmap(NULL, size)))
 	file_content.resize(size_file);
 	if (read(fd, file_content.data(), size_file) < 0)
 	{
 		close(fd);
 		syslog(LOG_DEBUG, "error to read from file descriptor");
-		return (Response(500).getResponse());
+		return (generate_error(500, _location));
 	}
  	close(fd);
 
