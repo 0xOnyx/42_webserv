@@ -41,7 +41,7 @@ std::string Static_serv::directory_listen(std::string &path, std::string uri)
 std::string	Static_serv::process_request(Request &request)
 {
 	struct stat			stat_element = {};
-	std::vector<char>	file_content;
+	char 				*file_content;
 	std::string 		file_type;
 	std::string 		file_str;
 	std::string 		path;
@@ -51,7 +51,7 @@ std::string	Static_serv::process_request(Request &request)
 	if (_location["methods"].find(request.request_line[METHOD]) == std::string::npos)
 	{
 		syslog(LOG_DEBUG, "error methods not allow");
-		return (Response(405).getResponse());
+		return (generate_error(405, _location));
 	}
 	path = _location["root"];
 	if (_location["path"] == request.getURIComp(PATH))
@@ -89,6 +89,7 @@ std::string	Static_serv::process_request(Request &request)
 	}
 	size_file = (ssize_t)stat_element.st_size;
 	syslog(LOG_DEBUG, "size of the file %ld", size_file);
+	if ((buff = (char *)mmap(NULL, size)))
 	file_content.resize(size_file);
 	if (read(fd, file_content.data(), size_file) < 0)
 	{

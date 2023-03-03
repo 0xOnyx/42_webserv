@@ -39,11 +39,15 @@ void	Containers::read_config(char *path)
 	close(fd_file);
 }
 
-void	Containers::_add_location(class Server *current_server, std::map<std::string, std::string>	&location)
+void	Containers::_add_location(class Server *current_server, std::map<std::string, std::string>	&location, struct ServerConfig &config)
 {
 	class Engine									*engine;
 	std::map<std::string, std::string>::iterator	iterator_location;
 
+	if (!config.error_5xx.empty())
+		location["error_5xx"] = config.error_5xx;
+	if (!config.error_4xx.empty())
+		location["error_4xx"] = config.error_4xx;
 	if (!current_server)
 		throw std::runtime_error("not set a location if server not declare");
 	if ((iterator_location = location.find("path")) == location.end() || iterator_location->second.length() <= 0)
@@ -90,9 +94,10 @@ void	Containers::_parse_config(char *file)
 			if (current_server)
 			{
 				if (!location.empty())
-					_add_location(current_server, location);
+					_add_location(current_server, location, config);
 				_add_server(config, current_server);
 			}
+			config = (struct ServerConfig){};
 			location = std::map<std::string, std::string>();
 			current_server = new class Server();
 		}
@@ -137,7 +142,10 @@ void	Containers::_parse_config(char *file)
 		else if (keyword == "location")
 		{
 			if (!location.empty())
-				_add_location(current_server, location);
+			{
+				_add_location(current_server, location, config);
+				location = std::map<std::string, std::string>();
+			}
 			ss >> location["path"];
 			syslog(LOG_DEBUG, "new location => %s", location["path"].c_str());
 		}
@@ -158,7 +166,7 @@ void	Containers::_parse_config(char *file)
 		token = strtok(NULL, "\n");
 	}
 	if (!location.empty())
-		_add_location(current_server, location);
+		_add_location(current_server, location, config);
 	_add_server(config, current_server);
 }
 

@@ -28,7 +28,7 @@ SRC_CONFIG			= config.cpp
 SRC_ENGINE			= cgi.cpp engine.cpp static_serv.cpp redirect.cpp
 SRC_ROUTINE			= main.cpp
 SRC_SERVER			= containers.cpp server.cpp socket.cpp
-SRC_UTIL			= utils.cpp epoll.cpp kqueue.cpp socket_utils.cpp compare.cpp syslog.cpp handler_poll.cpp request.cpp cgi_parser.cpp response.cpp mimes.cpp
+SRC_UTIL			= utils.cpp epoll.cpp kqueue.cpp socket_utils.cpp compare.cpp syslog.cpp handler_poll.cpp request.cpp cgi_parser.cpp response.cpp mimes.cpp generate_error.cpp
 SRC_CGI				= cgi.c
 
 SRC_CONFIGS			= $(addprefix $(PATH_CONFIG),$(SRC_CONFIG))

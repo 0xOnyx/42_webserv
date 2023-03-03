@@ -40,15 +40,19 @@ Response::Response(int status ) : _status(status) {
     _response = ss.str();
 }
 
-Response::Response(int status, size_t body_length, std::string body_type, std::string body, std::map<std::string, std::string> header_values) {
+Response::Response(int status, size_t b_len, std::string b_type, std::string body, std::map<std::string, std::string> header_values) : _status(status), _len(b_len), _type(b_type), _body(body)
+{
+	std::map<std::string, std::string>::iterator it;
+
     if (!_initialized)
         initStatusCode();
     std::ostringstream ss;
     ss << getStatusLine();
-    ss << "Date: " << setDate();
-    for (std::map<std::string, std::string>::iterator it = header_values.begin(); it != header_values.end(); it++) {
+    ss << "Date: " << setDate(); //TODO: MODIFY THIS
+    for (it = header_values.begin(); it != header_values.end(); it++) {
         ss << it->first << ": " << it->second << CRLF;
     }
+	ss << CRLF << _body;
     _response = ss.str();
 }
 
@@ -126,7 +130,7 @@ const std::string  Response::getEntityHeader(void ) {
     if (_status == METHOD_NOT_ALLOWED)
         ss << "Allow: GET, POST, DELETE" << CRLF; // Corriger en obtenant l'information du fichier de configuration;
     if (_len) {
-        ss << "Content-Length: " << _body.size() << CRLF;
+        ss << "Content-Length: " << _len << CRLF;
         ss << "Content-Type: " << _type << CRLF;
     }
     return (ss.str());

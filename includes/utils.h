@@ -57,5 +57,6 @@ typedef std::pair<std::string, std::string> pair_str;
 void	set_nonblocking(int sockfd);
 size_t	get_size_file(int fd);
 std::string string_to_lower( std::string str );
+std::string generate_error(int error_status, std::map<std::string, std::string> &location);
 
 #endif
