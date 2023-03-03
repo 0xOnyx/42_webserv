@@ -40,6 +40,18 @@ Response::Response(int status ) : _status(status) {
     _response = ss.str();
 }
 
+Response::Response(int status, size_t body_length, std::string body_type, std::string body, std::map<std::string, std::string> header_values) {
+    if (!_initialized)
+        initStatusCode();
+    std::ostringstream ss;
+    ss << getStatusLine();
+    ss << "Date: " << setDate();
+    for (std::map<std::string, std::string>::iterator it = header_values.begin(); it != header_values.end(); it++) {
+        ss << it->first << ": " << it->second << CRLF;
+    }
+    _response = ss.str();
+}
+
 Response::~Response() {}
 
 std::string    Response::setDate()

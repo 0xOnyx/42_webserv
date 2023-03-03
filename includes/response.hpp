@@ -43,6 +43,7 @@ private:
     std::string setDate( void );
 public:
     Response(int status, size_t b_len, std::string b_type, std::string body);
+    Response(int status, size_t body_length, std::string body_type, std::string body, std::map<std::string, std::string> header_values);
     Response(int status );
     ~Response(void );
 
