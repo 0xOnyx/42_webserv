@@ -40,6 +40,7 @@ private:
     std::string                         _type;
     std::string                         _body;
     std::string                         _response;
+    std::string                         _location;
     static void initStatusCode( void );
 
     const std::string getStatusLine( void );
@@ -50,7 +51,8 @@ private:
 public:
     Response(int status, size_t b_len, std::string b_type, std::string body);
     Response(int status, size_t body_length, std::string body_type, std::string body, std::map<std::string, std::string> header_values);
-    Response(int status );
+    Response( int status, std::string data);
+    Response( int status );
     ~Response(void );
 
     const std::string&  getResponse( void );

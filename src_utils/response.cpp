@@ -62,6 +62,16 @@ Response::Response(int status, size_t b_len, std::string b_type, std::string bod
     _response = ss.str();
 }
 
+Response::Response(int status, std::string data) : _status(status) {
+    if (!_initialized)
+        initStatusCode();
+    if ((_status == 201 ) || (_status / 100) == 3) {
+        _location = data; }
+    std::ostringstream ss;
+    ss << getStatusLine()<< getGeneralHeader() << getResponseHeader() << getEntityHeader() << CRLF;
+    _response = ss.str();
+}
+
 Response::~Response() {}
 
 std::string    Response::setDate()
@@ -107,8 +117,8 @@ std::string  Response::getGeneralHeader( ) {
 std::string  Response::getResponseHeader( ) {
     std::ostringstream ss;
     ss << "Accept-Ranges: none" << CRLF; // À vérifier
-    if (_status == 201 || (_status / 100) == 3) {
-        ss << "Location: " << CRLF; } // Trouver un moyen pour me donner la location
+    if ((_status == 201 && _location.size()) || (_status / 100) == 3) {
+        ss << "Location: " << _location << CRLF; }
     if (_status == 401) {
         ss << "WWW-Authenticate: Basic realm=Restricted Area" << CRLF; }
     return (ss.str());
