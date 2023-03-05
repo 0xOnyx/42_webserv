@@ -12,6 +12,12 @@ enum e_status_codes {
     ACCEPTED = 202,
     NO_CONTENT = 204,
     MULTIPLE = 300,
+    MOVED = 301,
+    FOUND = 302,
+    OTHER = 303,
+    NOT_MOD = 304,
+    TMP_REDIR = 307,
+    PERM_REDIR = 308,
     BAD_REQUEST = 400,
     UNAUTHORIZED = 401,
     FORBIDDEN = 403,
@@ -34,6 +40,7 @@ private:
     std::string                         _type;
     std::string                         _body;
     std::string                         _response;
+    std::string                         _location;
     static void initStatusCode( void );
 
     const std::string getStatusLine( void );
@@ -44,7 +51,8 @@ private:
 public:
     Response(int status, size_t b_len, std::string b_type, std::string body);
     Response(int status, size_t body_length, std::string body_type, std::string body, std::map<std::string, std::string> header_values);
-    Response(int status );
+    Response( int status, std::string data);
+    Response( int status );
     ~Response(void );
 
     const std::string&  getResponse( void );

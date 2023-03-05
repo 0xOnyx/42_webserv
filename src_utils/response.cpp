@@ -11,6 +11,12 @@ void Response::initStatusCode(void ) {
     _status_codes[ACCEPTED] = "Accepted";
     _status_codes[NO_CONTENT] = " No Content";
     _status_codes[MULTIPLE] = "Multiple Choices";
+    _status_codes[MOVED] = "Moved Permanently";
+    _status_codes[FOUND] = "Found";
+    _status_codes[OTHER] = "See Other";
+    _status_codes[NOT_MOD] = "Not Modified";
+    _status_codes[TMP_REDIR] = "Temporary Redirect";
+    _status_codes[PERM_REDIR] = "Permanent Redirect";
     _status_codes[BAD_REQUEST] = "Bad Request";
     _status_codes[UNAUTHORIZED] = "Unauthorized";
     _status_codes[FORBIDDEN] = "Forbidden";
@@ -53,6 +59,16 @@ Response::Response(int status, size_t b_len, std::string b_type, std::string bod
         ss << it->first << ": " << it->second << CRLF;
     }
 	ss << CRLF << _body;
+    _response = ss.str();
+}
+
+Response::Response(int status, std::string data) : _status(status) {
+    if (!_initialized)
+        initStatusCode();
+    if ((_status == 201 ) || (_status / 100) == 3) {
+        _location = data; }
+    std::ostringstream ss;
+    ss << getStatusLine()<< getGeneralHeader() << getResponseHeader() << getEntityHeader() << CRLF;
     _response = ss.str();
 }
 
@@ -101,8 +117,8 @@ std::string  Response::getGeneralHeader( ) {
 std::string  Response::getResponseHeader( ) {
     std::ostringstream ss;
     ss << "Accept-Ranges: none" << CRLF; // À vérifier
-    if (_status == 201 || (_status / 100) == 3) {
-        ss << "Location: " << CRLF; } // Trouver un moyen pour me donner la location
+    if ((_status == 201 && _location.size()) || (_status / 100) == 3) {
+        ss << "Location: " << _location << CRLF; }
     if (_status == 401) {
         ss << "WWW-Authenticate: Basic realm=Restricted Area" << CRLF; }
     return (ss.str());
