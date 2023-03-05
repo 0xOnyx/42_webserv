@@ -15,7 +15,6 @@ COLOR_RESET			= $(COLOR_ESC)[0m
 COLOR_RESET_BOLD	= $(COLOR_ESC)[21m
 
 PATH_HEADER			= includes/
-PATH_CONFIG			= src_config/
 PATH_ENGINE			= src_engine/
 PATH_ROUTINE		= src_routine/
 PATH_SERVER			= src_server/
@@ -24,21 +23,19 @@ PATH_CGI			= src_cgi/
 PATH_OBJ			= objs/
 
 HEADER				= cgi.hpp config.hpp containers.hpp data.h engine.hpp includes.h server.hpp socket.hpp static_serv.hpp utils.h syslog.hpp request.hpp mimes.hpp response.hpp redirect.hpp
-SRC_CONFIG			= config.cpp
 SRC_ENGINE			= cgi.cpp engine.cpp static_serv.cpp redirect.cpp
 SRC_ROUTINE			= main.cpp
 SRC_SERVER			= containers.cpp server.cpp socket.cpp
 SRC_UTIL			= utils.cpp epoll.cpp kqueue.cpp socket_utils.cpp compare.cpp syslog.cpp handler_poll.cpp request.cpp cgi_parser.cpp response.cpp mimes.cpp generate_error.cpp
 SRC_CGI				= cgi.c
 
-SRC_CONFIGS			= $(addprefix $(PATH_CONFIG),$(SRC_CONFIG))
 SRC_ENGINES			= $(addprefix $(PATH_ENGINE),$(SRC_ENGINE))
 SRC_ROUTINES		= $(addprefix $(PATH_ROUTINE),$(SRC_ROUTINE))
 SRC_SERVERS			= $(addprefix $(PATH_SERVER),$(SRC_SERVER))
 SRC_UTILS			= $(addprefix $(PATH_UTIL),$(SRC_UTIL))
 SRC_CGIS			= $(addprefix $(PATH_CGI),$(SRC_CGI))
 
-SRCS 				= $(SRC_CONFIGS) $(SRC_ENGINES) $(SRC_ROUTINES) $(SRC_SERVERS) $(SRC_UTILS)
+SRCS 				= $(SRC_ENGINES) $(SRC_ROUTINES) $(SRC_SERVERS) $(SRC_UTILS)
 
 OBJ					= $(SRCS:.cpp=.o)
 CGI_O				= $(SRC_CGIS:.c=.o)
@@ -90,11 +87,6 @@ else
 endif
 
 all			: $(NAME)
-
-$(PATH_OBJ)$(PATH_CONFIG)%.o	: $(PATH_CONFIG)%.cpp $(HEADERS)
-	@mkdir -p $(PATH_OBJ)$(PATH_CONFIG)
-	@$(CPP) $(CXXFLAGS) $(OPTIONS) -o $(@) -c $(<)
-	@printf "$(COLOR_GREEN)[$(COLOR_WHITE)INFO$(COLOR_GREEN)] COMPILATION $(COLOR_CYAN)DEBUG => [%s] $(COLOR_BOLD)CONFIG\t\t=>\t$(COLOR_WHITE)%s$(COLOR_RESET)\n" $(DEBUG) $<
 
 $(PATH_OBJ)$(PATH_ENGINE)%.o	: $(PATH_ENGINE)%.cpp $(HEADERS)
 	@mkdir -p $(PATH_OBJ)$(PATH_ENGINE)

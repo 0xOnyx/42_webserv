@@ -1,3 +1,4 @@
 objs/
 webserv
 .DS_Store
+cgi-bin/
