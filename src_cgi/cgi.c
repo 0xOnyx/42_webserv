@@ -23,11 +23,15 @@ static void	html(int visits)
 		   "<h1>Number of visit %d</h1>\n"
 		   "<p> REQUEST_URI => %s </p>"
 		   "<p> PATH_INFO => %s </p>"
-		   "<p> QUERY => %s </p>",
+		   "<p> QUERY => %s </p>"
+		   "<p> METHODE => %s </p>"
+		   "<P> Content-type => %s </p>",
 		   visits,
 		   getenv("REQUEST_URI"),
 		   getenv("PATH_INFO"),
-		   getenv("QUERY_STRING"));
+		   getenv("QUERY_STRING"),
+		   getenv("REQUEST_METHOD"),
+		   getenv("CONTENT_TYPE"));
 
 	printf("<p>content <br>");
 	memset(buff, 0, BUFFER_SIZE);

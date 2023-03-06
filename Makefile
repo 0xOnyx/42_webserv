@@ -2,6 +2,7 @@ include .env
 export
 NAME = webserv
 CGI	= cgi-bin/c.cgi
+NODE = cgi-bin/node.cgi
 
 COLOR_ESC			= \033
 COLOR_WHITE			= $(COLOR_ESC)[97m
@@ -22,12 +23,13 @@ PATH_UTIL			= src_utils/
 PATH_CGI			= src_cgi/
 PATH_OBJ			= objs/
 
-HEADER				= cgi.hpp config.hpp containers.hpp data.h engine.hpp includes.h server.hpp socket.hpp static_serv.hpp utils.h syslog.hpp request.hpp mimes.hpp response.hpp redirect.hpp
+HEADER				= cgi.hpp cgi_parser.hpp containers.hpp data.h engine.hpp includes.h mimes.hpp redirect.hpp request.hpp response.hpp server.hpp socket.hpp static_serv.hpp syslog.hpp utils.h
 SRC_ENGINE			= cgi.cpp engine.cpp static_serv.cpp redirect.cpp
 SRC_ROUTINE			= main.cpp
 SRC_SERVER			= containers.cpp server.cpp socket.cpp
 SRC_UTIL			= utils.cpp epoll.cpp kqueue.cpp socket_utils.cpp compare.cpp syslog.cpp handler_poll.cpp request.cpp cgi_parser.cpp response.cpp mimes.cpp generate_error.cpp
 SRC_CGI				= cgi.c
+SRC_NODE			= node.js
 
 SRC_ENGINES			= $(addprefix $(PATH_ENGINE),$(SRC_ENGINE))
 SRC_ROUTINES		= $(addprefix $(PATH_ROUTINE),$(SRC_ROUTINE))
@@ -120,7 +122,14 @@ $(CGI):  $(CGIS_O)
 	@echo "$(COLOR_GREEN)[$(COLOR_WHITE)INFO$(COLOR_GREEN)] LINKAGE $(COLOR_BOLD)CGI OBJS FILE =>\n\t $(COLOR_WHITE)$(CGIS_O:.o=.o\n\t)"
 	@$(CC) $(CFLAGS) -o $@ $(CGIS_O)
 
-$(NAME)		: $(OBJS) $(CGI)
+node: $(NODE)
+
+$(NODE):
+	@echo "$(COLOR_GREEN)[$(COLOR_WHITE)INFO$(COLOR_GREEN)] INSTALL $(COLOR_BOLD)CGI NODE FILE =>\n\t $(COLOR_WHITE)$(PATH_CGI)$(SRC_NODE)\n\t"
+	@npm install parse-multipart-data
+	@cp $(PATH_CGI)$(SRC_NODE) $@
+
+$(NAME)		: $(OBJS) $(CGI) $(NODE)
 	@$(CPP) $(CXXFLAGS) $(OPTIONS) -o $(@) $(OBJS) $(LIBS)
 	@echo "$(COLOR_GREEN)[$(COLOR_WHITE)INFO$(COLOR_GREEN)] LINKAGE $(COLOR_BOLD)ALL OBJS FILE =>\n\t $(COLOR_WHITE)$(OBJS:.o=.o\n\t)"
 	@echo "$(COLOR_GREEN)[$(COLOR_WHITE)INFO$(COLOR_GREEN)] COMPILATION FINISH !$(COLOR_WHITE)$(COLOR_RESET_BOLD)"
@@ -136,6 +145,8 @@ clean		:
 fclean		: clean
 	@$(RM) $(NAME)
 	@$(RM) $(CGI)
+	@$(RM) $(NODE)
+	@npm remove parse-multipart-data
 	@echo "$(COLOR_GREEN)[$(COLOR_WHITE)INFO$(COLOR_GREEN)] DELETE $(COLOR_BOLD)PROGRAMME AND CGI =>\n\t $(COLOR_WHITE)$(NAME)"
 	@echo "$(COLOR_GREEN)[$(COLOR_WHITE)INFO$(COLOR_GREEN)] FCLEAN FINISH !$(COLOR_RESET)"
 

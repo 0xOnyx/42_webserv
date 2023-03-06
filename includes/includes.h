@@ -12,7 +12,6 @@ extern volatile bool is_running;
 # include "response.hpp"
 # include "engine.hpp"
 # include "containers.hpp"
-# include "config.hpp"
 # include "server.hpp"
 # include "socket.hpp"
 # include "syslog.hpp"

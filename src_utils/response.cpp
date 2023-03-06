@@ -62,13 +62,13 @@ Response::Response(int status, size_t b_len, std::string b_type, std::string bod
     _response = ss.str();
 }
 
-Response::Response(int status, std::string data) : _status(status) {
+Response::Response(int status, std::string data) : _status(status), _len(0) {
     if (!_initialized)
         initStatusCode();
     if ((_status == 201 ) || (_status / 100) == 3) {
         _location = data; }
     std::ostringstream ss;
-    ss << getStatusLine()<< getGeneralHeader() << getResponseHeader() << getEntityHeader() << CRLF;
+    ss << getStatusLine()<< getGeneralHeader() << getResponseHeader() << CRLF;
     _response = ss.str();
 }
 
