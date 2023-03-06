@@ -201,7 +201,7 @@ std::string Cgi::process_request(Request &request)
 	{
 		//create not authorized Responsse
 		syslog(LOG_DEBUG, "error methods not allow");
-		return (std::string(""));
+		return (generate_error(401, _location));
 	}
 	path = _location["root"];
 	if (_location["path"] == request.getURIComp(PATH))

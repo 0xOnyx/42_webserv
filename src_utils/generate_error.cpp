@@ -35,7 +35,7 @@ std::string	generate_error(int error_status, std::map<std::string, std::string> 
 	close(fd);
 
 	file_str = std::string(file_content.begin(), file_content.end());
-	syslog(LOG_DEBUG, "content of the file %s", file_str.c_str());
+	//syslog(LOG_DEBUG, "content of the file %s", file_str.c_str());
 
 	file_type = mimes::get_type(error_page.c_str());
 	syslog(LOG_DEBUG, "type of the file %s", file_type.c_str());

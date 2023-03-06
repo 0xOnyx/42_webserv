@@ -27,6 +27,13 @@ int	main(int argc, char **argv)
 	std::ostringstream error;
 	class Containers containers;
 
+#if defined __linux__
+	syslog(LOG_INFO, "RUN ON LINUX");
+#endif
+#if defined __APPLE__
+	syslog(LOG_INFO, "RUN MACOS");
+#endif
+
 	(void) argc;
 	try
 	{

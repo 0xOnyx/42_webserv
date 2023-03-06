@@ -38,7 +38,14 @@ int 	Socket::read_socket(int socket)
 			&current_buffer[size],
 			BUFFER_SIZE,
 			0)) < 0)
+	{
 		syslog(LOG_ERR, "Error with socket to read %d %m", socket);
+		return (3);
+	}
+	if (current_size == 0)
+	{
+		return (3);
+	}
 	current_buffer.resize(size + current_size);
 	current_str = std::string(current_buffer.begin(), current_buffer.end());
 	if ((res_pos = current_str.find("\r\n\r\n")) != std::string::npos)
