@@ -198,7 +198,7 @@ void	Containers::listen()
 {
 	while (is_running){
 		if (poll_wait(&_poll, 20))
-			throw std::runtime_error("event during epoll process");
+			throw std::runtime_error("event during poll process");
 	}
 }
 

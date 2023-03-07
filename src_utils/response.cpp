@@ -38,6 +38,16 @@ Response::Response(int status, size_t b_len, std::string b_type, std::string bod
     _response = ss.str();
 }
 
+Response::Response(int status, size_t b_len, std::string b_type, std::string body, std::string data) : _status(status), _len(b_len), _type(b_type), _body(body) {
+	if (!_initialized)
+		initStatusCode();
+	if (_status == 405)
+		_allowed = data;
+	std::ostringstream ss;
+	ss << getStatusLine() << getGeneralHeader() << getResponseHeader() << getEntityHeader() << CRLF << _body;
+	_response = ss.str();
+}
+
 Response::Response(int status ) : _status(status) {
     if (!_initialized)
         initStatusCode();
@@ -65,8 +75,8 @@ Response::Response(int status, size_t b_len, std::string b_type, std::string bod
 Response::Response(int status, std::string data) : _status(status), _len(0) {
     if (!_initialized)
         initStatusCode();
-    if ((_status == 201 ) || (_status / 100) == 3) {
-        _location = data; }
+    if ((_status == 201 ) || (_status / 100) == 3)
+        _location = data;
     std::ostringstream ss;
     ss << getStatusLine()<< getGeneralHeader() << getResponseHeader() << CRLF;
     _response = ss.str();
@@ -86,7 +96,7 @@ std::string  Response::getGeneralHeader( ) {
     std::ostringstream ss;
 
     ss << "Date: " << setDate();
-    ss << "Connection: close" << CRLF; //Update en fonction du fichier de configuration ?
+    ss << "Connection: close" << CRLF;
     return (ss.str());
 }
 
@@ -116,7 +126,7 @@ std::string  Response::getGeneralHeader( ) {
 
 std::string  Response::getResponseHeader( ) {
     std::ostringstream ss;
-    ss << "Accept-Ranges: none" << CRLF; // À vérifier
+    ss << "Accept-Ranges: none" << CRLF;
     if ((_status == 201 && _location.size()) || (_status / 100) == 3) {
         ss << "Location: " << _location << CRLF; }
     if (_status == 401) {
@@ -144,7 +154,7 @@ std::string  Response::getResponseHeader( ) {
 const std::string  Response::getEntityHeader(void ) {
     std::ostringstream ss;
     if (_status == METHOD_NOT_ALLOWED)
-        ss << "Allow: GET, POST, DELETE" << CRLF; // Corriger en obtenant l'information du fichier de configuration;
+        ss << "Allow: " << _allowed << CRLF;
     if (_len) {
         ss << "Content-Length: " << _len << CRLF;
         ss << "Content-Type: " << _type << CRLF;

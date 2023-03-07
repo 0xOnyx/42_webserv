@@ -39,7 +39,7 @@ std::string	generate_error(int error_status, std::map<std::string, std::string> 
 
 	file_type = mimes::get_type(error_page.c_str());
 	syslog(LOG_DEBUG, "type of the file %s", file_type.c_str());
-	return (Response(error_status, file_str.size(), file_type, file_str).getResponse());
+	return (Response(error_status, file_str.size(), file_type, file_str, location["methods"]).getResponse());
 }
 
 

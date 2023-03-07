@@ -57,7 +57,7 @@ std::string	Static_serv::process_request(Request &request)
 	if (_location["path"] == request.getURIComp(PATH))
 		path += "/" + _location["index"];
 	else
-		path += request.getURIComp(PATH).substr(_location["path"].size());
+		path += _location["path"] != "/" ? request.getURIComp(PATH).substr(_location["path"].size()) : request.getURIComp(PATH);
 	syslog(LOG_DEBUG, "search file for the value => %s", path.c_str());
 	if (stat(path.c_str(), &stat_element) != 0)
 	{
